@@ -1,55 +1,164 @@
 {% extends "base.html" %}
 
-{% block title %}Admin Dashboard{% endblock %}
+{% block title %}Quản Trị Hệ Thống{% endblock %}
 
 {% block sidebar %}
-    <!-- Menu dành riêng cho Admin -->
-    <li class="nav-item">
-        <a class="nav-link active" href="/admin/TrangChu"><i class="fas fa-home me-2"></i> Tổng quan</a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link" href="#"><i class="fas fa-users me-2"></i> Quản lý Nhân sự</a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link" href="#"><i class="fas fa-money-bill me-2"></i> Quản lý Lương</a>
-    </li>
-    <li class="nav-item">
-        <a class="nav-link" href="#"><i class="fas fa-cog me-2"></i> Cài đặt hệ thống</a>
-    </li>
+    <style>
+        .nav-group-label { color: #adb5bd; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; padding: 1rem 1rem 0.5rem; letter-spacing: 1px; }
+        .nav-link.collapsed .fas.fa-chevron-down { transform: rotate(-90deg); }
+        .fas.fa-chevron-down { transition: transform 0.3s; }
+        .submenu .nav-link { padding-left: 2.5rem; font-size: 0.95rem; }
+    </style>
+
+    <!-- MENU QUẢN LÝ: MỞ SẴN (VÌ ĐANG Ở DASHBOARD) -->
+    <div class="nav-item">
+        <a class="nav-link d-flex justify-content-between align-items-center bg-dark text-white" 
+           data-bs-toggle="collapse" href="#menuQuanLy" aria-expanded="true">
+            <span><i class="fas fa-user-tie me-2 text-warning"></i>QUẢN LÝ</span>
+            <i class="fas fa-chevron-down small"></i>
+        </a>
+        <div class="collapse show" id="menuQuanLy">
+            <ul class="nav flex-column submenu bg-dark bg-opacity-50">
+                <li class="nav-item"><a class="nav-link active text-white" href="/admin/TrangChu"><i class="fas fa-tachometer-alt me-2"></i>Tổng Quan</a></li>
+                <li class="nav-item"><a class="nav-link text-white-50 hover-white" href="/admin/nhan_su"><i class="fas fa-users me-2"></i>Nhân Sự</a></li>
+                <li class="nav-item"><a class="nav-link text-white-50 hover-white" href="/admin/cham_cong"><i class="fas fa-calendar-alt me-2"></i>Chấm Công</a></li>
+                <li class="nav-item"><a class="nav-link text-white-50 hover-white" href="#"><i class="fas fa-file-invoice-dollar me-2"></i>Tính Lương</a></li>
+                <li class="nav-item"><a class="nav-link text-white-50 hover-white" href="#"><i class="fas fa-clock me-2"></i>Xếp Ca</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- MENU CÁ NHÂN: ĐÓNG (NHƯNG LINK ĐÃ ĐƯỢC SỬA CHUẨN VỀ ADMIN) -->
+    <div class="nav-item mt-2">
+        <a class="nav-link collapsed d-flex justify-content-between align-items-center bg-dark text-white" 
+           data-bs-toggle="collapse" href="#menuCaNhan" aria-expanded="false">
+            <span><i class="fas fa-user-circle me-2 text-info"></i>CÁ NHÂN</span>
+            <i class="fas fa-chevron-down small"></i>
+        </a>
+        <div class="collapse" id="menuCaNhan">
+            <ul class="nav flex-column submenu bg-dark bg-opacity-50">
+                <!-- Link trỏ về /admin/personal_home -->
+                <li class="nav-item">
+                    <a class="nav-link text-white-50 hover-white" href="/admin/personal_home">
+                        <i class="fas fa-home me-2"></i> Trang Chủ
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white-50 hover-white" href="/admin/profile">
+                        <i class="fas fa-id-card me-2"></i> Hồ Sơ Của Tôi
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white-50 hover-white" href="/admin/salary">
+                        <i class="fas fa-money-check-alt me-2"></i> Bảng Lương
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white-50 hover-white" href="/admin/schedule">
+                        <i class="fas fa-calendar-alt me-2"></i> Lịch Làm Việc
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white-50 hover-white" href="/admin/attendlog">
+                        <i class="fas fa-history me-2"></i> Lịch Sử Chấm Công
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
 {% endblock %}
 
 {% block content %}
-    <h2>Bảng điều khiển Quản Lý</h2>
-    <p class="text-muted">Chào mừng quay trở lại hệ thống quản trị.</p>
-
-    <!-- Các thẻ thống kê mẫu -->
-    <div class="row mt-4">
-        <div class="col-md-4">
-            <div class="card text-white bg-primary mb-3">
-                <div class="card-header">Tổng Nhân Viên</div>
+<div class="container-fluid">
+    <h3 class="mb-4 text-dark fw-bold">Tổng Quan Hệ Thống</h3>
+    
+    <!-- 1. THỐNG KÊ (Số liệu thật từ Database) -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm text-white bg-primary h-100">
                 <div class="card-body">
-                    <h5 class="card-title display-4">15</h5>
-                    <p class="card-text">Nhân sự đang hoạt động</p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div><h6 class="text-uppercase mb-1 opacity-75">Tổng Nhân Sự</h6><h2 class="mb-0 fw-bold">{{ stats.total }}</h2></div>
+                        <i class="fas fa-users fa-3x opacity-50"></i>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card text-white bg-success mb-3">
-                <div class="card-header">Có mặt hôm nay</div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm text-white bg-success h-100">
                 <div class="card-body">
-                    <h5 class="card-title display-4">12</h5>
-                    <p class="card-text">Đã check-in</p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div><h6 class="text-uppercase mb-1 opacity-75">Hiện diện</h6><h2 class="mb-0 fw-bold">{{ stats.present }}</h2></div>
+                        <i class="fas fa-user-check fa-3x opacity-50"></i>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card text-white bg-warning mb-3">
-                <div class="card-header">Đơn xin nghỉ</div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm text-white bg-warning h-100">
                 <div class="card-body">
-                    <h5 class="card-title display-4">2</h5>
-                    <p class="card-text">Đang chờ duyệt</p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div><h6 class="text-uppercase mb-1 opacity-75 text-dark">Đi muộn</h6><h2 class="mb-0 fw-bold text-dark">{{ stats.late }}</h2></div>
+                        <i class="fas fa-user-clock fa-3x text-dark opacity-25"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm text-white bg-danger h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div><h6 class="text-uppercase mb-1 opacity-75">Vắng mặt</h6><h2 class="mb-0 fw-bold">{{ stats.absent }}</h2></div>
+                        <i class="fas fa-user-slash fa-3x opacity-50"></i>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- 2. HOẠT ĐỘNG GẦN ĐÂY -->
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 fw-bold text-primary"><i class="fas fa-history me-2"></i>Hoạt động chấm công hôm nay</h5>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light">
+                            <tr><th class="ps-4">Nhân viên</th><th>Thời gian</th><th>Hành động</th><th>Trạng thái</th></tr>
+                        </thead>
+                        <tbody>
+                            {% if activities %}
+                                {% for act in activities %}
+                                <tr>
+                                    <td class="ps-4 fw-bold">{{ act.HoTen }}</td>
+                                    <td>{{ act.Time }}</td>
+                                    <td>{{ act.Type }}</td>
+                                    <td><span class="badge bg-{{ act.Color }}">{{ act.Status }}</span></td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr><td colspan="4" class="text-center py-4 text-muted">Chưa có dữ liệu chấm công.</td></tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 fw-bold text-dark"><i class="fas fa-bolt me-2 text-warning"></i>Tác vụ nhanh</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-3">
+                        <a href="#" class="btn btn-outline-primary text-start p-3"><i class="fas fa-user-plus me-3 fa-lg"></i>Thêm nhân viên mới</a>
+                        <a href="#" class="btn btn-outline-success text-start p-3"><i class="fas fa-calculator me-3 fa-lg"></i>Tính lương tháng này</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

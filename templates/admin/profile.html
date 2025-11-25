@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+
+{% block title %}Hồ Sơ Quản Trị Viên{% endblock %}
+
+{% block sidebar %}
+    <style>
+        .nav-group-label { color: #adb5bd; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; padding: 1rem 1rem 0.5rem; letter-spacing: 1px; }
+        .nav-link.collapsed .fas.fa-chevron-down { transform: rotate(-90deg); }
+        .fas.fa-chevron-down { transition: transform 0.3s; }
+        .submenu .nav-link { padding-left: 2.5rem; font-size: 0.95rem; }
+    </style>
+
+    <!-- MENU QUẢN LÝ (Đóng) -->
+    <div class="nav-item">
+        <a class="nav-link collapsed d-flex justify-content-between align-items-center bg-dark text-white" data-bs-toggle="collapse" href="#menuQuanLy">
+            <span><i class="fas fa-user-tie me-2 text-warning"></i>QUẢN LÝ</span><i class="fas fa-chevron-down small"></i>
+        </a>
+        <div class="collapse" id="menuQuanLy">
+            <ul class="nav flex-column submenu bg-dark bg-opacity-50">
+                <li class="nav-item"><a class="nav-link text-white-50 hover-white" href="/admin/TrangChu"><i class="fas fa-tachometer-alt me-2"></i>Tổng Quan</a></li>
+                <li class="nav-item"><a class="nav-link text-white-50 hover-white" href="#"><i class="fas fa-users me-2"></i>Nhân Sự</a></li>
+                <li class="nav-item"><a class="nav-link text-white-50 hover-white" href="#"><i class="fas fa-calendar-alt me-2"></i>Chấm Công</a></li>
+                <li class="nav-item"><a class="nav-link text-white-50 hover-white" href="#"><i class="fas fa-file-invoice-dollar me-2"></i>Tính Lương</a></li>
+                <li class="nav-item"><a class="nav-link text-white-50 hover-white" href="#"><i class="fas fa-clock me-2"></i>Xếp Ca</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- MENU CÁ NHÂN (Mở sẵn) -->
+    <div class="nav-item mt-2">
+        <a class="nav-link d-flex justify-content-between align-items-center bg-dark text-white" data-bs-toggle="collapse" href="#menuCaNhan">
+            <span><i class="fas fa-user-circle me-2 text-info"></i>CÁ NHÂN</span><i class="fas fa-chevron-down small"></i>
+        </a>
+        <div class="collapse show" id="menuCaNhan">
+            <ul class="nav flex-column submenu bg-dark bg-opacity-50">
+                <li class="nav-item"><a class="nav-link text-white-50 hover-white" href="/admin/personal_home"><i class="fas fa-home me-2"></i> Trang Chủ</a></li>
+                <li class="nav-item"><a class="nav-link active text-white" href="/admin/profile"><i class="fas fa-id-card me-2"></i> Hồ Sơ Của Tôi</a></li>
+                <li class="nav-item"><a class="nav-link text-white-50 hover-white" href="/admin/salary"><i class="fas fa-money-check-alt me-2"></i> Bảng Lương</a></li>
+                <li class="nav-item"><a class="nav-link text-white-50 hover-white" href="/admin/schedule"><i class="fas fa-calendar-alt me-2"></i> Lịch Làm Việc</a></li>
+                <li class="nav-item"><a class="nav-link text-white-50 hover-white" href="/admin/attendlog"><i class="fas fa-history me-2"></i> Lịch Sử Chấm Công</a></li>
+            </ul>
+        </div>
+    </div>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-8 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white border-bottom-0 pt-4 px-4">
+                    <h5 class="mb-0 fw-bold text-primary"><i class="fas fa-id-card me-2"></i>Thông Tin Chi Tiết</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form action="/admin/profile" method="POST">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label text-muted fw-bold small">Mã Nhân Viên</label>
+                                <input type="text" class="form-control bg-light" value="{{ info.MaNV }}" disabled>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-muted fw-bold small">Họ và Tên</label>
+                                <input type="text" class="form-control bg-light" value="{{ info.HoTen }}" disabled>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label text-muted fw-bold small">Ngày Sinh</label>
+                                <input type="text" class="form-control bg-light" value="{{ info.NamSinh }}" disabled>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-muted fw-bold small">Chức Vụ</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light"><i class="fas fa-briefcase"></i></span>
+                                    <input type="text" class="form-control bg-light" value="{{ info.ChucVu }}" disabled>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="my-4 text-muted">
+                        <h6 class="text-success mb-3 fw-bold"><i class="fas fa-user-edit me-2"></i>Cập nhật thông tin liên hệ</h6>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Số Điện Thoại</label>
+                            <input type="text" class="form-control border-success" name="sdt" value="{{ info.SoDienThoai }}">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Email</label>
+                            <input type="email" class="form-control border-success" name="email" value="{{ info.Email }}">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Địa Chỉ</label>
+                            <textarea class="form-control border-success" name="dia_chi" rows="2">{{ info.DiaChi }}</textarea>
+                        </div>
+
+                        <div class="d-flex justify-content-end mt-4">
+                            <button type="submit" class="btn btn-primary px-4 fw-bold shadow-sm">
+                                <i class="fas fa-save me-2"></i>Lưu Thay Đổi
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card border-0 shadow-sm text-center p-4 h-100 bg-white">
+                <div class="mb-4 mt-2">
+                    <img src="https://ui-avatars.com/api/?name={{ info.HoTen }}&background=f0ad4e&color=fff&size=150" 
+                         class="rounded-circle img-thumbnail shadow-sm border-warning border-3" 
+                         alt="Avatar" 
+                         style="width: 150px; height: 150px; object-fit: cover;">
+                </div>
+                <h4 class="mb-1 fw-bold">{{ info.HoTen }}</h4>
+                <span class="badge bg-danger text-uppercase px-3 py-2 mt-2">ADMINISTRATOR</span>
+                
+                <div class="card-body px-0 mt-3">
+                    <ul class="list-group list-group-flush text-start small">
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-calendar-check me-2 text-info"></i>Ngày vào làm</span>
+                            <span class="fw-bold">{{ info.NgayVaoLam }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <span><i class="fas fa-building me-2 text-warning"></i>Phòng ban</span>
+                            <span class="fw-bold text-dark">{{ info.TenPhongBan }}</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

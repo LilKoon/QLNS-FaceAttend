@@ -32,7 +32,7 @@
 <body>
 
     <div class="login-card">
-        <h3 class="login-title">HRM System</h3>
+        <h3 class="login-title">LilKoon System</h3>
 
         <!-- Hiển thị thông báo lỗi từ Flask -->
         {% with messages = get_flashed_messages(with_categories=true) %}
@@ -49,7 +49,7 @@
         <form action="/dangnhap" method="POST">
             <div class="mb-3">
                 <label for="username" class="form-label">Tài khoản</label>
-                <input type="text" class="form-control" id="username" name="username" required placeholder="Nhập mã nhân viên hoặc tên user">
+                <input type="text" class="form-control" id="username" name="username" required placeholder="Nhập tài khoản">
             </div>
             <div class="mb-4">
                 <label for="password" class="form-label">Mật khẩu</label>

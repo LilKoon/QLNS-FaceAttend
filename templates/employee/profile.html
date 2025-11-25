@@ -13,7 +13,7 @@
 {% block content %}
 <div class="container-fluid">
     
-    <!-- LƯU Ý: ĐÃ XÓA KHỐI HIỂN THỊ ALERT Ở ĐÂY VÌ ĐÃ CÓ Ở BASE.HTML -->
+    <!-- Đã xóa thông báo flash ở đây vì base.html đã lo việc này -->
 
     <div class="row">
         <!-- CỘT TRÁI: Form Thông Tin -->
@@ -24,6 +24,7 @@
                 </div>
                 <div class="card-body p-4">
                     <form action="/employee/profile" method="POST">
+                        <!-- Hàng 1: Mã NV và Họ Tên -->
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <label class="form-label text-muted fw-bold small">Mã Nhân Viên</label>
@@ -41,6 +42,7 @@
                             </div>
                         </div>
 
+                        <!-- Hàng 2: Ngày Sinh và CHỨC VỤ (Đã thay đổi Lương -> Chức Vụ) -->
                         <div class="row mb-3">
                             <div class="col-md-6">
                                 <label class="form-label text-muted fw-bold small">Ngày Sinh</label>
@@ -50,10 +52,12 @@
                                 </div>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label text-muted fw-bold small">Lương Cơ Bản</label>
+                                <label class="form-label text-muted fw-bold small">Chức Vụ</label>
                                 <div class="input-group">
-                                    <span class="input-group-text bg-light"><i class="fas fa-money-bill-wave"></i></span>
-                                    <input type="text" class="form-control bg-light" value="{{ "{:,.0f}".format(info.LuongCoBan) }} VNĐ" disabled>
+                                    <!-- Đổi icon tiền thành icon cặp tài liệu (briefcase) -->
+                                    <span class="input-group-text bg-light"><i class="fas fa-briefcase"></i></span>
+                                    <!-- Hiển thị chức vụ từ database -->
+                                    <input type="text" class="form-control bg-light" value="{{ info.ChucVu }}" disabled>
                                 </div>
                             </div>
                         </div>
@@ -99,17 +103,18 @@
                 </div>
                 
                 <h4 class="mb-1 fw-bold">{{ info.HoTen }}</h4>
+                <!-- Chức vụ vẫn hiện ở đây như cũ -->
                 <p class="text-muted badge bg-light text-dark border px-3 py-2 mt-2">{{ info.ChucVu }}</p>
                 
                 <div class="card-body px-0 mt-3">
                     <ul class="list-group list-group-flush text-start small">
                         <li class="list-group-item d-flex justify-content-between align-items-center">
                             <span><i class="fas fa-calendar-check me-2 text-info"></i>Ngày vào làm</span>
-                            <span class="fw-bold">01/01/2023</span>
+                            <span class="fw-bold">{{ info.NgayVaoLam }}</span>
                         </li>
                         <li class="list-group-item d-flex justify-content-between align-items-center">
                             <span><i class="fas fa-building me-2 text-warning"></i>Phòng ban</span>
-                            <span class="fw-bold">Kỹ Thuật</span>
+                            <span class="fw-bold text-dark">{{ info.TenPhongBan }}</span>
                         </li>
                         <li class="list-group-item d-flex justify-content-between align-items-center">
                             <span><i class="fas fa-user-tag me-2 text-success"></i>Trạng thái</span>

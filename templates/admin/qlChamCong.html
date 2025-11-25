@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+
+{% block title %}Quản Lý Chấm Công{% endblock %}
+
+{% block sidebar %}
+    <style>.submenu .nav-link { padding-left: 2.5rem; font-size: 0.95rem; }</style>
+    <!-- MENU QUẢN LÝ (Mở) -->
+    <div class="nav-item">
+        <a class="nav-link d-flex justify-content-between align-items-center bg-dark text-white" 
+           data-bs-toggle="collapse" href="#menuQuanLy" aria-expanded="true">
+            <span><i class="fas fa-user-tie me-2 text-warning"></i>QUẢN LÝ</span><i class="fas fa-chevron-down small"></i>
+        </a>
+        <div class="collapse show" id="menuQuanLy">
+            <ul class="nav flex-column submenu bg-dark bg-opacity-50">
+                <li class="nav-item"><a class="nav-link text-white-50 hover-white" href="/admin/TrangChu"><i class="fas fa-tachometer-alt me-2"></i>Tổng Quan</a></li>
+                <li class="nav-item"><a class="nav-link text-white-50 hover-white" href="/admin/nhan-su"><i class="fas fa-users me-2"></i>Nhân Sự</a></li>
+                <li class="nav-item"><a class="nav-link active text-white" href="/admin/cham_cong"><i class="fas fa-calendar-alt me-2"></i>Chấm Công</a></li>
+                <li class="nav-item"><a class="nav-link text-white-50 hover-white" href="#"><i class="fas fa-file-invoice-dollar me-2"></i>Tính Lương</a></li>
+                <li class="nav-item"><a class="nav-link text-white-50 hover-white" href="#"><i class="fas fa-clock me-2"></i>Xếp Ca</a></li>
+            </ul>
+        </div>
+    </div>
+    <!-- MENU CÁ NHÂN (Đóng) -->
+    <div class="nav-item mt-2">
+        <a class="nav-link collapsed d-flex justify-content-between align-items-center bg-dark text-white" 
+           data-bs-toggle="collapse" href="#menuCaNhan" aria-expanded="false">
+            <span><i class="fas fa-user-circle me-2 text-info"></i>CÁ NHÂN</span><i class="fas fa-chevron-down small"></i>
+        </a>
+        <div class="collapse" id="menuCaNhan">
+            <ul class="nav flex-column submenu bg-dark bg-opacity-50">
+                <li class="nav-item"><a class="nav-link text-white-50 hover-white" href="/admin/personal_home"><i class="fas fa-home me-2"></i>Trang Chủ</a></li>
+                <li class="nav-item"><a class="nav-link text-white-50 hover-white" href="/admin/profile"><i class="fas fa-id-card me-2"></i>Hồ Sơ Của Tôi</a></li>
+                <li class="nav-item"><a class="nav-link text-white-50 hover-white" href="/admin/salary"><i class="fas fa-money-check-alt me-2"></i>Bảng Lương</a></li>
+                <li class="nav-item"><a class="nav-link text-white-50 hover-white" href="/admin/schedule"><i class="fas fa-calendar-alt me-2"></i>Lịch Làm Việc</a></li>
+                <li class="nav-item"><a class="nav-link text-white-50 hover-white" href="/admin/attendlog"><i class="fas fa-history me-2"></i>Công Của Tôi</a></li>
+            </ul>
+        </div>
+    </div>
+{% endblock %}
+
+{% block content %}
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white py-3">
+        <div class="row align-items-center">
+            <div class="col-md-4">
+                <h5 class="mb-0 fw-bold text-primary"><i class="fas fa-calendar-check me-2"></i>Nhật Ký Chấm Công</h5>
+            </div>
+            
+            <!-- BỘ LỌC NGÀY -->
+            <div class="col-md-8">
+                <form action="/admin/cham_cong" method="GET" class="d-flex justify-content-end gap-2">
+                    <div class="input-group w-auto">
+                        <span class="input-group-text bg-white"><i class="fas fa-filter text-muted"></i></span>
+                        <input type="date" name="date" class="form-control" value="{{ ngay_chon }}" onchange="this.form.submit()">
+                    </div>
+                    <button class="btn btn-outline-secondary" type="button" onclick="window.location.href='/admin/cham_cong'">Hôm nay</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4">Nhân Viên</th>
+                        <th>Phòng Ban</th>
+                        <th>Giờ Vào</th>
+                        <th>Giờ Ra</th>
+                        <th>Trạng Thái</th>
+                        <th class="text-end pe-4">Hành Động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if ds_cong %}
+                        {% for row in ds_cong %}
+                        <tr>
+                            <td class="ps-4">
+                                <div class="fw-bold">{{ row.HoTen }}</div>
+                                <small class="text-muted">MNV: {{ row.MaNV }}</small>
+                            </td>
+                            <td>{{ row.TenPhongBan }}</td>
+                            
+                            <!-- Giờ Vào -->
+                            <td class="font-monospace text-primary fw-bold">
+                                {{ row.GioVao if row.GioVao else '--:--:--' }}
+                            </td>
+                            
+                            <!-- Giờ Ra -->
+                            <td class="font-monospace text-success fw-bold">
+                                {{ row.GioRa if row.GioRa else '--:--:--' }}
+                            </td>
+                            
+                            <td>
+                                <span class="badge bg-{{ row.Color }}">{{ row.TrangThai }}</span>
+                            </td>
+                            
+                            <td class="text-end pe-4">
+                                <!-- Nút Sửa Chấm Công -->
+                                <button class="btn btn-sm btn-outline-warning" 
+                                        data-bs-toggle="modal" data-bs-target="#modalSuaCong"
+                                        onclick="dienDuLieuSua('{{ row.LogId }}', '{{ row.HoTen }}', '{{ row.GioVao }}', '{{ row.GioRa }}')">
+                                    <i class="fas fa-wrench me-1"></i>Sửa
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="6" class="text-center py-5 text-muted">
+                                <i class="fas fa-clipboard-list fa-3x mb-3 opacity-25"></i>
+                                <p>Không có dữ liệu chấm công nào trong ngày này.</p>
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL SỬA CHẤM CÔNG (XỬ LÝ QUÊN CHECK-IN/OUT) -->
+<div class="modal fade" id="modalSuaCong" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title fw-bold"><i class="fas fa-edit me-2"></i>Hiệu Chỉnh Chấm Công</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="/admin/cham_cong/sua" method="POST">
+                <div class="modal-body">
+                    <!-- Input ẩn để gửi ID và Ngày về server -->
+                    <input type="hidden" name="log_id" id="edit_log_id">
+                    <input type="hidden" name="ngay_chon" value="{{ ngay_chon }}">
+                    
+                    <div class="alert alert-light border small mb-3">
+                        <i class="fas fa-info-circle text-primary me-1"></i>
+                        Đang sửa công cho: <strong id="display_name" class="text-dark">...</strong><br>
+                        Ngày: <strong>{{ ngay_chon }}</strong>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Giờ Vào (Check-in)</label>
+                            <input type="time" step="1" name="gio_vao" id="edit_gio_vao" class="form-control">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Giờ Ra (Check-out)</label>
+                            <input type="time" step="1" name="gio_ra" id="edit_gio_ra" class="form-control">
+                        </div>
+                    </div>
+                    <div class="small text-muted fst-italic">
+                        * Lưu ý: Để trống nếu muốn xóa giờ đó. Định dạng 24h.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-warning fw-bold">Lưu Thay Đổi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function dienDuLieuSua(logid, hoten, giovao, giora) {
+        document.getElementById('edit_log_id').value = logid;
+        document.getElementById('display_name').innerText = hoten;
+        document.getElementById('edit_gio_vao').value = giovao;
+        document.getElementById('edit_gio_ra').value = giora;
+    }
+</script>
+{% endblock %}
