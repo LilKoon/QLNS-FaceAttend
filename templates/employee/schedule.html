@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}Lịch Làm Việc{% endblock %}
+
+{% block sidebar %}
+    <li class="nav-item mb-2"><a class="nav-link" href="/employee/TrangChu"><i class="fas fa-home me-2"></i> Trang Chủ</a></li>
+    <li class="nav-item mb-2"><a class="nav-link" href="/employee/profile"><i class="fas fa-user-circle me-2"></i> Thông Tin Cá Nhân</a></li>
+    <li class="nav-item mb-2"><a class="nav-link" href="/employee/salary"><i class="fas fa-money-check-alt me-2"></i> Bảng Lương</a></li>
+    <li class="nav-item mb-2"><a class="nav-link active" href="/employee/schedule"><i class="fas fa-calendar-alt me-2"></i> Lịch Làm Việc</a></li>
+    <li class="nav-item mb-2"><a class="nav-link" href="/employee/attendlog"><i class="fas fa-history me-2"></i> Lịch Sử Chấm Công</a></li>
+{% endblock %}
+
+{% block content %}
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white py-3">
+        <h5 class="mb-0 text-primary fw-bold"><i class="fas fa-calendar-week me-2"></i>Lịch Làm Việc Tuần Này</h5>
+        <small class="text-muted">Từ {{ days[0].display }} đến {{ days[6].display }}</small>
+    </div>
+    
+    <div class="card-body p-4">
+        <div class="table-responsive">
+            <table class="table table-bordered text-center align-middle" style="table-layout: fixed;">
+                <thead class="bg-primary text-white">
+                    <tr>
+                        {% for day in days %}
+                            <!-- Nếu là hôm nay thì tô đậm tiêu đề -->
+                            <th class="py-3 {% if day.date_str == hom_nay_str %}bg-warning text-dark border-warning{% endif %}">
+                                <div class="fw-bold">{{ day.day_name }}</div>
+                                <div class="small fw-normal">{{ day.display }}</div>
+                            </th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr style="height: 150px;">
+                        {% for day in days %}
+                            <td class="bg-light position-relative p-2">
+                                <!-- Kiểm tra xem ngày này có dữ liệu trong Dictionary không -->
+                                {% if day.date_str in schedule %}
+                                    {% set ca = schedule[day.date_str] %}
+                                    
+                                    <div class="card border-0 shadow-sm h-100 border-start border-4 border-primary">
+                                        <div class="card-body p-2 d-flex flex-column justify-content-center">
+                                            <h6 class="fw-bold text-primary mb-1">{{ ca.TenCa }}</h6>
+                                            <div class="badge bg-light text-dark border mb-1">
+                                                {{ ca.GioBatDau }} - {{ ca.GioKetThuc }}
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% else %}
+                                    <!-- Không có lịch -> Nghỉ -->
+                                    <div class="d-flex align-items-center justify-content-center h-100 text-muted opacity-50">
+                                        <div>
+                                            <i class="fas fa-bed fa-2x mb-2"></i><br>
+                                            <small>Nghỉ</small>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                                
+                                <!-- Đánh dấu hôm nay -->
+                                {% if day.date_str == hom_nay_str %}
+                                    <span class="position-absolute top-0 start-50 translate-middle badge rounded-pill bg-danger">
+                                        Hôm nay
+                                    </span>
+                                {% endif %}
+                            </td>
+                        {% endfor %}
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="mt-3 text-muted small">
+            <i class="fas fa-info-circle me-1"></i>
+            Nếu có thắc mắc về lịch làm việc, vui lòng liên hệ trực tiếp với quản lý.
+        </div>
+    </div>
+</div>
+{% endblock %}

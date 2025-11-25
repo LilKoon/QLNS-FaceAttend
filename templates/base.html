@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Hệ thống QLNS{% endblock %}</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body { min-height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        .wrapper { display: flex; flex: 1; height: 100vh; }
+        
+        /* Sidebar Styling */
+        .sidebar {
+            min-width: 250px;
+            max-width: 250px;
+            background: #212529;
+            color: #fff;
+            transition: all 0.3s;
+            display: flex;
+            flex-direction: column; 
+        }
+        
+        .sidebar .nav-link { color: rgba(255,255,255,0.8); padding: 15px 20px; font-size: 1.05rem; }
+        .sidebar .nav-link:hover { color: #fff; background: rgba(255,255,255,0.1); border-left: 4px solid #0d6efd; }
+        .sidebar .nav-link.active { background: rgba(13, 110, 253, 0.2); color: #4dabf7; border-left: 4px solid #0d6efd; }
+        .sidebar-header { padding: 25px 20px; background: #00000020; text-align: center; border-bottom: 1px solid #ffffff10; }
+
+        /* Content Styling */
+        .content { 
+            width: 100%; 
+            padding: 0;
+            background: #f4f6f9; 
+            display: flex;
+            flex-direction: column;
+        }
+
+        .top-navbar {
+            background: #ffffff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .main-body {
+            padding: 30px;
+            overflow-y: auto;
+            flex: 1;
+            position: relative;
+        }
+
+        /* --- SỬA CSS: CĂN GIỮA TOAST --- */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            /* Logic căn giữa tuyệt đối */
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1055;
+            /* Đảm bảo toast không quá rộng trên mobile */
+            max-width: 90%; 
+            width: auto;
+        }
+        
+        .toast {
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+            min-width: 300px; /* Độ rộng tối thiểu cho đẹp */
+        }
+        
+        .toast.show {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="wrapper">
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h4 class="mb-0 fw-bold"><i class="fas fa-users-cog me-2"></i>HRM APP</h4>
+            </div>
+            <ul class="nav flex-column mt-4">
+                {% block sidebar %}{% endblock %}
+            </ul>
+        </nav>
+
+        <!-- Nội dung chính -->
+        <div class="content">
+            <!-- Header -->
+            <div class="top-navbar">
+                <div class="text-muted fw-bold">
+                    <i class="far fa-calendar-alt me-2"></i>
+                    <script>document.write(new Date().toLocaleDateString('vi-VN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }))</script>
+                </div>
+                <div class="d-flex align-items-center gap-3">
+                    <div class="text-end me-2">
+                        <small class="d-block text-muted" style="font-size: 0.8rem;">Xin chào,</small>
+                        <span class="fw-bold text-dark">{{ session.get('username') }}</span>
+                    </div>
+                    <a href="/logout" class="btn btn-outline-danger btn-sm px-3 rounded-pill">
+                        <i class="fas fa-power-off me-1"></i> Đăng xuất
+                    </a>
+                </div>
+            </div>
+
+            <!-- Main Body -->
+            <div class="main-body">
+                
+                <!-- Khu vực hiển thị Toast (Popup thông báo) -->
+                <div class="toast-container">
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                {% set icon_class = 'fa-check-circle' if category == 'success' else ('fa-exclamation-triangle' if category == 'warning' else 'fa-times-circle') %}
+                                {% set bg_class = 'bg-success' if category == 'success' else ('bg-warning' if category == 'warning' else 'bg-danger') %}
+                                
+                                <div class="toast align-items-center text-white {{ bg_class }} border-0 mb-2 shadow" role="alert" aria-live="assertive" aria-atomic="true">
+                                    <div class="d-flex">
+                                        <div class="toast-body fs-6">
+                                            <i class="fas {{ icon_class }} me-2"></i> {{ message }}
+                                        </div>
+                                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+                </div>
+
+                {% block content %}{% endblock %}
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var toastElList = [].slice.call(document.querySelectorAll('.toast'))
+            var toastList = toastElList.map(function (toastEl) {
+                return new bootstrap.Toast(toastEl, { delay: 5000 });
+            });
+            toastList.forEach(toast => toast.show());
+        });
+    </script>
+</body>
+</html>

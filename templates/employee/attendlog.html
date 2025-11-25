@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}Lịch Sử Chấm Công{% endblock %}
+
+{% block sidebar %}
+    <li class="nav-item mb-2"><a class="nav-link" href="/employee/TrangChu"><i class="fas fa-home me-2"></i> Trang Chủ</a></li>
+    <li class="nav-item mb-2"><a class="nav-link" href="/employee/profile"><i class="fas fa-user-circle me-2"></i> Thông Tin Cá Nhân</a></li>
+    <li class="nav-item mb-2"><a class="nav-link" href="/employee/salary"><i class="fas fa-money-check-alt me-2"></i> Bảng Lương</a></li>
+    <li class="nav-item mb-2"><a class="nav-link" href="/employee/schedule"><i class="fas fa-calendar-alt me-2"></i> Lịch Làm Việc</a></li>
+    <li class="nav-item mb-2"><a class="nav-link active" href="/employee/attendlog"><i class="fas fa-history me-2"></i> Lịch Sử Chấm Công</a></li>
+{% endblock %}
+
+{% block content %}
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white py-3">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 text-primary fw-bold">
+                <i class="fas fa-calendar-check me-2"></i>Chấm Công Tháng {{ thang }}/{{ nam }}
+            </h5>
+            <div>
+                <a href="/employee/attendlog?month={{ thang - 1 if thang > 1 else 12 }}&year={{ nam if thang > 1 else nam - 1 }}" class="btn btn-outline-secondary btn-sm"><i class="fas fa-chevron-left"></i></a>
+                <span class="mx-2 fw-bold">Tháng {{ thang }}</span>
+                <a href="/employee/attendlog?month={{ thang + 1 if thang < 12 else 1 }}&year={{ nam if thang < 12 else nam + 1 }}" class="btn btn-outline-secondary btn-sm"><i class="fas fa-chevron-right"></i></a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card-body p-4">
+        <!-- Giao diện Lịch -->
+        <div class="table-responsive">
+            <table class="table table-bordered text-center" style="table-layout: fixed;">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="text-danger">CN</th>
+                        <th>Thứ 2</th>
+                        <th>Thứ 3</th>
+                        <th>Thứ 4</th>
+                        <th>Thứ 5</th>
+                        <th>Thứ 6</th>
+                        <th class="text-primary">Thứ 7</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for week in calendar %}
+                    <tr>
+                        {% for day in week %}
+                            {% if day == 0 %}
+                                <!-- Ngày không thuộc tháng này -->
+                                <td class="bg-light"></td>
+                            {% else %}
+                                {% if day in attend_data %}
+                                    <!-- Lấy màu từ backend: warning (cam) hoặc success (xanh) -->
+                                    {% set status_color = attend_data[day]['color'] %}
+                                    <!-- Chữ đen nếu nền cam, chữ trắng nếu nền xanh -->
+                                    {% set text_color = 'text-dark' if status_color == 'warning' else 'text-white' %}
+                                    
+                                    <td class="bg-{{ status_color }} {{ text_color }} position-relative" style="height: 100px; vertical-align: top;">
+                                        <div class="fw-bold fs-5">{{ day }}</div>
+                                        <div class="mt-2 small">
+                                            <div><i class="fas fa-sign-in-alt"></i> {{ attend_data[day]['check_in'] }}</div>
+                                            <!-- Nếu chưa checkout thì hiện dấu gạch ngang hoặc ẩn -->
+                                            {% if attend_data[day]['check_out'] != '--:--' %}
+                                                <div><i class="fas fa-sign-out-alt"></i> {{ attend_data[day]['check_out'] }}</div>
+                                            {% else %}
+                                                <div class="fst-italic opacity-75">Chưa về</div>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                {% else %}
+                                    <!-- Vắng / Chưa chấm -->
+                                    <td class="position-relative" style="height: 100px; vertical-align: top;">
+                                        <div class="text-muted fw-bold">{{ day }}</div>
+                                    </td>
+                                {% endif %}
+                            {% endif %}
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Chú thích màu sắc -->
+        <div class="mt-3 d-flex gap-3">
+            <div><span class="badge bg-success me-1"> </span> Đủ công (Xanh)</div>
+            <div><span class="badge bg-warning text-dark me-1"> </span> Thiếu giờ ra (Cam)</div>
+            <div><span class="badge bg-white border text-dark me-1"> </span> Vắng / Chưa chấm</div>
+        </div>
+    </div>
+</div>
+{% endblock %}

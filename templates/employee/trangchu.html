@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Trang Chủ Nhân Viên{% endblock %}
+
+{% block sidebar %}
+    <li class="nav-item mb-2"><a class="nav-link active" href="/employee/TrangChu"><i class="fas fa-home me-2"></i> Trang Chủ</a></li>
+    <li class="nav-item mb-2"><a class="nav-link" href="/employee/profile"><i class="fas fa-user-circle me-2"></i> Thông Tin Cá Nhân</a></li>
+    <li class="nav-item mb-2"><a class="nav-link" href="/employee/salary"><i class="fas fa-money-check-alt me-2"></i> Bảng Lương</a></li>
+    <li class="nav-item mb-2"><a class="nav-link" href="/employee/schedule"><i class="fas fa-calendar-alt me-2"></i> Lịch Làm Việc</a></li>
+    <li class="nav-item mb-2"><a class="nav-link" href="/employee/attendlog"><i class="fas fa-history me-2"></i> Lịch Sử Chấm Công</a></li>
+{% endblock %}
+
+{% block content %}
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-4">
+            <h4 class="text-primary mb-3">Xin chào, {{ session.get('username') }}!</h4>
+            
+            <!-- Alert hiển thị trạng thái chấm công -->
+            <div class="alert alert-{{ color }} d-flex align-items-center shadow-sm" role="alert">
+                <!-- Icon thay đổi theo trạng thái -->
+                {% if color == 'warning' %}
+                    <i class="fas fa-exclamation-triangle fa-2x me-3"></i>
+                {% elif color == 'info' %}
+                    <i class="fas fa-clock fa-2x me-3"></i>
+                {% else %}
+                    <i class="fas fa-check-circle fa-2x me-3"></i>
+                {% endif %}
+                
+                <div>
+                    <!-- Tiêu đề trạng thái tùy theo màu -->
+                    <h5 class="alert-heading mb-1 fw-bold">
+                        {% if color == 'warning' %}
+                            Chưa Check-in
+                        {% elif color == 'info' %}
+                            Đang làm việc
+                        {% else %}
+                            Hoàn thành
+                        {% endif %}
+                    </h5>
+                    <!-- Nội dung thông báo từ Backend -->
+                    <p class="mb-0">{{ msg }}</p>
+                </div>
+                
+                <!-- ĐÃ XÓA NÚT "Check-in Ngay" Ở ĐÂY -->
+            </div>
+
+            <!-- Dòng nhắc nhở nhỏ bên dưới -->
+             {% if not cham_cong %}
+                <p class="text-muted fst-italic mt-2 small ms-1">
+                    <i class="fas fa-info-circle me-1"></i>Vui lòng đến máy chấm công FaceID để thực hiện điểm danh.
+                </p>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Khu vực thông báo -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white fw-bold border-bottom-0 pt-3">
+            <i class="fas fa-bell text-warning me-2"></i> Thông báo mới
+        </div>
+        <div class="list-group list-group-flush">
+            <a href="#" class="list-group-item list-group-item-action py-3">
+                <div class="d-flex w-100 justify-content-between">
+                    <h6 class="mb-1 text-dark">Thông báo bảo trì hệ thống</h6>
+                    <small class="text-muted">Hôm nay</small>
+                </div>
+                <p class="mb-1 text-secondary small">Hệ thống sẽ bảo trì vào 12h đêm nay...</p>
+            </a>
+        </div>
+    </div>
+{% endblock %}
