@@ -1,0 +1,258 @@
+{% extends "base.html" %}
+
+{% block title %}Đăng Ký Khuôn Mặt{% endblock %}
+
+{% block sidebar %}
+    <style>.submenu .nav-link { padding-left: 2.5rem; font-size: 0.95rem; }</style>
+    <!-- MENU QUẢN LÝ (Mở sẵn) -->
+    <div class="nav-item">
+        <a class="nav-link d-flex justify-content-between align-items-center bg-dark text-white" 
+           data-bs-toggle="collapse" href="#menuQuanLy" aria-expanded="true">
+            <span><i class="fas fa-user-tie me-2 text-warning"></i>QUẢN LÝ</span><i class="fas fa-chevron-down small"></i>
+        </a>
+        <div class="collapse show" id="menuQuanLy">
+            <ul class="nav flex-column submenu bg-dark bg-opacity-50">
+                <li class="nav-item"><a class="nav-link text-white-50 hover-white" href="/admin/TrangChu"><i class="fas fa-tachometer-alt me-2"></i>Tổng Quan</a></li>
+                <li class="nav-item"><a class="nav-link text-white-50 hover-white" href="/admin/nhan_su"><i class="fas fa-users me-2"></i>Nhân Sự</a></li>
+                <li class="nav-item"><a class="nav-link text-white-50 hover-white" href="/admin/cham_cong"><i class="fas fa-calendar-alt me-2"></i>Chấm Công</a></li>
+                <li class="nav-item"><a class="nav-link text-white-50 hover-white" href="#"><i class="fas fa-file-invoice-dollar me-2"></i>Tính Lương</a></li>
+                <li class="nav-item"><a class="nav-link text-white-50 hover-white" href="#"><i class="fas fa-clock me-2"></i>Xếp Ca</a></li>
+                <li class="nav-item"><a class="nav-link active text-white" href="/admin/face_register"><i class="fas fa-laugh-wink me-2"></i>Đăng Ký Khuôn Mặt</a></li>
+            </ul>
+        </div>
+    </div>
+    <!-- MENU CÁ NHÂN (Đóng) -->
+    <div class="nav-item mt-2">
+        <a class="nav-link collapsed d-flex justify-content-between align-items-center bg-dark text-white" 
+           data-bs-toggle="collapse" href="#menuCaNhan" aria-expanded="false">
+            <span><i class="fas fa-user-circle me-2 text-info"></i>CÁ NHÂN</span><i class="fas fa-chevron-down small"></i>
+        </a>
+        <div class="collapse" id="menuCaNhan">
+            <ul class="nav flex-column submenu bg-dark bg-opacity-50">
+                <li class="nav-item"><a class="nav-link text-white-50 hover-white" href="/admin/personal_home"><i class="fas fa-home me-2"></i>Trang Chủ</a></li>
+                <li class="nav-item"><a class="nav-link text-white-50 hover-white" href="/admin/profile"><i class="fas fa-id-card me-2"></i>Hồ Sơ Của Tôi</a></li>
+                <li class="nav-item"><a class="nav-link text-white-50 hover-white" href="/admin/salary"><i class="fas fa-money-check-alt me-2"></i>Bảng Lương</a></li>
+                <li class="nav-item"><a class="nav-link text-white-50 hover-white" href="/admin/schedule"><i class="fas fa-calendar-alt me-2"></i>Lịch Làm Việc</a></li>
+                <li class="nav-item"><a class="nav-link text-white-50 hover-white" href="/admin/attendlog"><i class="fas fa-history me-2"></i>Công Của Tôi</a></li>
+            </ul>
+        </div>
+    </div>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row g-4"> <!-- g-4 tạo khoảng cách đều giữa các cột -->
+        
+        <!-- CỘT TRÁI: CAMERA (Chiếm 7 phần) -->
+        <div class="col-lg-8 col-md-7">
+            <div class="card border-0 shadow-sm h-100"> <!-- h-100 để chiều cao bằng cột bên cạnh -->
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 text-primary fw-bold"><i class="fas fa-camera me-2"></i>Camera Đăng Ký</h5>
+                    <span class="badge bg-success" id="camStatus">Đang hoạt động</span>
+                </div>
+                <div class="card-body bg-dark text-center p-0 position-relative d-flex align-items-center justify-content-center" style="min-height: 500px; background-color: #000;">
+                    <video id="video" width="100%" height="100%" autoplay style="transform: scaleX(-1); object-fit: cover; max-height: 550px;"></video>
+                    <canvas id="canvas" style="display:none;"></canvas>
+                    
+                    <!-- Khung ngắm khuôn mặt -->
+                    <div class="position-absolute top-50 start-50 translate-middle" 
+                         style="width: 280px; height: 350px; border: 3px dashed #00ff00; border-radius: 12px; box-shadow: 0 0 50px rgba(0, 255, 0, 0.2);">
+                         <div class="position-absolute bottom-0 start-50 translate-middle-x mb-2 text-white bg-dark bg-opacity-75 px-2 rounded small">
+                             Đặt khuôn mặt vào đây
+                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CỘT PHẢI: TÌM KIẾM & CHỌN NHÂN VIÊN (Chiếm 5 phần) -->
+        <div class="col-lg-4 col-md-5">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white py-3">
+                    <h5 class="mb-0 fw-bold text-dark"><i class="fas fa-user-check me-2"></i>Chọn Nhân Viên</h5>
+                </div>
+                <div class="card-body p-3 d-flex flex-column">
+                    
+                    <!-- 1. Ô TÌM KIẾM -->
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted">Tìm kiếm nhân viên</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0"><i class="fas fa-search text-muted"></i></span>
+                            <input type="text" id="searchBox" class="form-control border-start-0 ps-0 bg-light" 
+                                   placeholder="Nhập tên hoặc mã NV..." autocomplete="off">
+                        </div>
+                    </div>
+
+                    <!-- 2. DANH SÁCH NHÂN VIÊN (Có cuộn dọc) -->
+                    <div class="flex-grow-1 border rounded mb-3 overflow-auto" style="max-height: 350px; min-height: 200px;">
+                        <div class="list-group list-group-flush" id="employeeList">
+                            {% for nv in ds_nv %}
+                            <button type="button" class="list-group-item list-group-item-action employee-item" 
+                                    onclick="selectEmployee('{{ nv.MaNV }}', '{{ nv.HoTen }}', this)"
+                                    data-search="{{ nv.HoTen }} {{ nv.MaNV }}">
+                                <div class="d-flex w-100 justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-0 fw-bold text-primary">{{ nv.HoTen }}</h6>
+                                        <small class="text-muted">MNV: {{ nv.MaNV }}</small>
+                                    </div>
+                                    <i class="fas fa-chevron-right text-muted small"></i>
+                                </div>
+                            </button>
+                            {% endfor %}
+                            
+                            <!-- Hiển thị khi không tìm thấy -->
+                            <div id="noResult" class="text-center py-4 text-muted d-none">
+                                <i class="fas fa-search-minus mb-2"></i><br>Không tìm thấy nhân viên
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3. KHU VỰC XÁC NHẬN & NÚT BẤM (Ghim dưới đáy) -->
+                    <div class="mt-auto pt-3 border-top">
+                        <div class="alert alert-secondary d-flex align-items-center py-2 px-3 mb-3" role="alert">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <div class="small">
+                                Đang chọn: <strong id="selectedName" class="text-dark">Chưa chọn</strong>
+                            </div>
+                        </div>
+                        
+                        <input type="hidden" id="selectedMaNV">
+
+                        <div class="d-grid">
+                            <button id="btnCapture" class="btn btn-primary btn-lg fw-bold" disabled>
+                                <i class="fas fa-camera me-2"></i>Chụp & Lưu Khuôn Mặt
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Thông báo trạng thái -->
+                    <div id="msgAlert" class="alert mt-3 d-none text-center p-2 small"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- KHỞI TẠO BIẾN ---
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const btnCapture = document.getElementById('btnCapture');
+    const searchBox = document.getElementById('searchBox');
+    const employeeList = document.getElementById('employeeList');
+    const employeeItems = document.querySelectorAll('.employee-item');
+    const selectedNameDisplay = document.getElementById('selectedName');
+    const selectedMaNVInput = document.getElementById('selectedMaNV');
+    const msgAlert = document.getElementById('msgAlert');
+    const noResult = document.getElementById('noResult');
+
+    // --- 1. MỞ CAMERA ---
+    navigator.mediaDevices.getUserMedia({ video: true })
+        .then(stream => { video.srcObject = stream; })
+        .catch(err => {
+            document.getElementById('camStatus').className = 'badge bg-danger';
+            document.getElementById('camStatus').innerText = 'Lỗi Camera';
+            alert("Không tìm thấy Camera! Hãy kiểm tra kết nối.");
+        });
+
+    // --- 2. XỬ LÝ TÌM KIẾM NHÂN VIÊN ---
+    searchBox.addEventListener('keyup', function() {
+        const filter = this.value.toLowerCase();
+        let hasVisible = false;
+
+        employeeItems.forEach(item => {
+            const text = item.getAttribute('data-search').toLowerCase();
+            if (text.includes(filter)) {
+                item.classList.remove('d-none');
+                hasVisible = true;
+            } else {
+                item.classList.add('d-none');
+            }
+        });
+
+        // Hiện thông báo nếu không tìm thấy ai
+        if (hasVisible) {
+            noResult.classList.add('d-none');
+        } else {
+            noResult.classList.remove('d-none');
+        }
+    });
+
+    // --- 3. XỬ LÝ CHỌN NHÂN VIÊN ---
+    window.selectEmployee = function(maNV, hoTen, element) {
+        // Xóa active cũ
+        employeeItems.forEach(item => item.classList.remove('active', 'bg-light'));
+        
+        // Thêm active mới
+        element.classList.add('active');
+        
+        // Cập nhật UI
+        selectedMaNVInput.value = maNV;
+        selectedNameDisplay.innerText = hoTen;
+        selectedNameDisplay.className = "text-primary";
+        
+        // Bật nút chụp
+        btnCapture.disabled = false;
+        btnCapture.classList.remove('btn-secondary');
+        btnCapture.classList.add('btn-primary');
+        
+        // Ẩn thông báo cũ nếu có
+        msgAlert.classList.add('d-none');
+    };
+
+    // --- 4. XỬ LÝ NÚT CHỤP ẢNH ---
+    btnCapture.addEventListener('click', () => {
+        const maNV = selectedMaNVInput.value;
+        if (!maNV) return;
+
+        // Hiệu ứng chụp (nháy màn hình)
+        video.style.opacity = "0.5";
+        setTimeout(() => video.style.opacity = "1", 100);
+
+        // Vẽ ảnh lên canvas
+        const context = canvas.getContext('2d');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        
+        // Lấy dữ liệu base64
+        const imgData = canvas.toDataURL('image/jpeg');
+
+        // Gửi API
+        btnCapture.disabled = true;
+        btnCapture.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Đang xử lý AI...';
+        
+        fetch('/api/face/register', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ ma_nv: maNV, image: imgData })
+        })
+        .then(r => r.json())
+        .then(data => {
+            msgAlert.classList.remove('d-none', 'alert-success', 'alert-danger');
+            if(data.status === 'success') {
+                msgAlert.classList.add('alert-success');
+                msgAlert.innerHTML = `<i class="fas fa-check-circle me-1"></i> ${data.message}`;
+                // Reset form sau khi thành công
+                setTimeout(() => {
+                    msgAlert.classList.add('d-none');
+                    // Không cần reset chọn để có thể chụp lại nếu muốn
+                }, 3000);
+            } else {
+                msgAlert.classList.add('alert-danger');
+                msgAlert.innerHTML = `<i class="fas fa-exclamation-circle me-1"></i> ${data.message}`;
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            msgAlert.classList.remove('d-none');
+            msgAlert.classList.add('alert-danger');
+            msgAlert.innerText = "Lỗi kết nối server!";
+        })
+        .finally(() => {
+            btnCapture.disabled = false;
+            btnCapture.innerHTML = '<i class="fas fa-camera me-2"></i>Chụp & Lưu Khuôn Mặt';
+        });
+    });
+</script>
+{% endblock %}

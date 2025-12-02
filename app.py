@@ -1,9 +1,10 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash, make_response
 import calendar
 from datetime import datetime, timedelta
-from ham import *;
+from ham import *
 import csv
 import io
+from face_attend import *
 
 app = Flask(__name__)
 app.secret_key = '06430313' 
@@ -528,7 +529,46 @@ def admin_sua_cc():
 # @app .route('/admin/schedule_management')
 
 
+#Face Attend
+@app.route('/admin/face_register')
+def admin_face_register():
+    if 'loggedin' not in session: return redirect(url_for('login'))
+    # Lấy danh sách NV để Admin chọn người cần đăng ký
+    ds_nv = lay_danh_sach_nhan_vien()
+    return render_template('admin/face_register.html', ds_nv=ds_nv)
 
+# --- [API] XỬ LÝ ĐĂNG KÝ (Nhận ảnh từ JS gửi về) ---
+@app.route('/api/face/register', methods=['POST'])
+def api_face_register():
+    data = request.json
+    ma_nv = data.get('ma_nv')
+    image = data.get('image') # Base64 string
+    
+    if not ma_nv or not image:
+        return {"status": "error", "message": "Thiếu dữ liệu"}
+        
+    ok, msg = luu_khuon_mat_db(ma_nv, image)
+    if ok:
+        return {"status": "success", "message": msg}
+    return {"status": "error", "message": msg}
+
+# --- [API] CHẤM CÔNG (Dùng cho trang chấm công riêng hoặc tích hợp) ---
+@app.route('/api/face/attend', methods=['POST'])
+def api_face_attend():
+    data = request.json
+    image = data.get('image')
+    
+    if not image:
+        return {"status": "error", "message": "Thiếu ảnh"}
+        
+    result = cham_cong_bang_khuon_mat(image)
+    return result
+
+@app.route('/cham_cong_face_id')
+def trang_cham_cong_face():
+    # Trang này không cần login (để treo máy ở cửa) 
+    # hoặc nếu muốn bảo mật thì thêm check login admin
+    return render_template('chamcong.html')
 
 if __name__ == '__main__':
     app.run(debug=True)
