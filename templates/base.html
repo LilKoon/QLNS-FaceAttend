@@ -55,15 +55,13 @@
             position: relative;
         }
 
-        /* --- SỬA CSS: CĂN GIỮA TOAST --- */
+        /* Toast Container (Căn giữa) */
         .toast-container {
             position: fixed;
             top: 20px;
-            /* Logic căn giữa tuyệt đối */
             left: 50%;
             transform: translateX(-50%);
             z-index: 1055;
-            /* Đảm bảo toast không quá rộng trên mobile */
             max-width: 90%; 
             width: auto;
         }
@@ -71,11 +69,43 @@
         .toast {
             opacity: 0;
             transition: opacity 0.3s ease-in-out;
-            min-width: 300px; /* Độ rộng tối thiểu cho đẹp */
+            min-width: 300px;
         }
         
         .toast.show {
             opacity: 1;
+        }
+
+        /* CSS CHO QUẢ CHUÔNG */
+        .notification-dropdown .dropdown-menu {
+            width: 320px;
+            padding: 0;
+            border: 0;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .notification-item {
+            padding: 10px 15px;
+            border-bottom: 1px solid #eee;
+            transition: background 0.2s;
+        }
+        
+        .notification-item:hover {
+            background: #f8f9fa;
+        }
+        
+        .notification-item:last-child {
+            border-bottom: 0;
+        }
+        
+        .notif-icon {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            flex-shrink: 0;
         }
     </style>
 </head>
@@ -85,8 +115,12 @@
         <!-- Sidebar -->
         <nav class="sidebar">
             <div class="sidebar-header">
-                <h4 class="mb-0 fw-bold"><i class="fas fa-users-cog me-2"></i>LilKoon</h4>
+                <!-- Logo hoặc Tên ứng dụng -->
+                <h4 class="mb-0 fw-bold text-uppercase" style="letter-spacing: 1px;">
+                    <i class="fas fa-users-cog me-2 text-primary"></i>LilKoon
+                </h4>
             </div>
+            
             <ul class="nav flex-column mt-4">
                 {% block sidebar %}{% endblock %}
             </ul>
@@ -94,27 +128,88 @@
 
         <!-- Nội dung chính -->
         <div class="content">
+            
             <!-- Header -->
             <div class="top-navbar">
+                <!-- Ngày tháng bên trái -->
                 <div class="text-muted fw-bold">
                     <i class="far fa-calendar-alt me-2"></i>
                     <script>document.write(new Date().toLocaleDateString('vi-VN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }))</script>
                 </div>
+
                 <div class="d-flex align-items-center gap-3">
-                    <div class="text-end me-2">
+                    
+                    <!-- NÚT THÔNG BÁO (QUẢ CHUÔNG) -->
+                    <div class="dropdown notification-dropdown">
+                        <!-- Sự kiện onclick gọi hàm JS markNotificationRead() -->
+                        <a class="nav-link text-secondary position-relative" href="#" role="button" 
+                           data-bs-toggle="dropdown" aria-expanded="false" onclick="markNotificationRead()">
+                            <i class="fas fa-bell fa-lg"></i>
+                            
+                            <!-- Chỉ hiện số đỏ nếu có tin chưa đọc (unread_count > 0) -->
+                            {% if unread_count and unread_count > 0 %}
+                            <span id="notifBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem;">
+                                {{ unread_count }}
+                                <span class="visually-hidden">unread messages</span>
+                            </span>
+                            {% endif %}
+                        </a>
+
+                        <!-- Danh sách xổ xuống -->
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li class="p-3 border-bottom bg-light d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0 fw-bold">Thông báo</h6>
+                                <small class="text-muted">
+                                    {% if unread_count and unread_count > 0 %}
+                                        {{ unread_count }} mới
+                                    {% endif %}
+                                </small>
+                            </li>
+                            
+                            <div style="max-height: 300px; overflow-y: auto;">
+                                {% if notifications %}
+                                    {% for notif in notifications %}
+                                    <li>
+                                        <!-- [MỚI] Thêm href="{{ notif.Link }}" để chuyển trang -->
+                                        <a class="dropdown-item notification-item d-flex gap-3" href="{{ notif.Link }}">
+                                            <!-- Icon Xanh/Đỏ/Vàng tùy trạng thái -->
+                                            <div class="notif-icon bg-{{ notif.Color }} bg-opacity-10 text-{{ notif.Color }}">
+                                                <i class="fas {{ notif.Icon }}"></i>
+                                            </div>
+                                            <div>
+                                                <p class="mb-0 small fw-bold text-dark">{{ notif.NoiDung }}</p>
+                                                <div class="d-flex justify-content-between align-items-center mt-1">
+                                                    <span class="badge bg-{{ notif.Color }}">{{ notif.TextStatus }}</span>
+                                                    <small class="text-muted" style="font-size: 0.7rem;">{{ notif.NgayGui.strftime('%d/%m') }}</small>
+                                                </div>
+                                            </div>
+                                        </a>
+                                    </li>
+                                    {% endfor %}
+                                {% else %}
+                                    <li class="p-4 text-center text-muted">
+                                        <i class="far fa-bell-slash fa-2x mb-2 opacity-25"></i>
+                                        <p class="mb-0 small">Không có thông báo mới</p>
+                                    </li>
+                                {% endif %}
+                            </div>
+                        </ul>
+                    </div>
+
+                    <div class="text-end me-2 border-start ps-3">
                         <small class="d-block text-muted" style="font-size: 0.8rem;">Xin chào,</small>
                         <span class="fw-bold text-dark">{{ session.get('username') }}</span>
                     </div>
+                    
                     <a href="/logout" class="btn btn-outline-danger btn-sm px-3 rounded-pill">
                         <i class="fas fa-power-off me-1"></i> Đăng xuất
                     </a>
                 </div>
             </div>
 
-            <!-- Main Body -->
             <div class="main-body">
                 
-                <!-- Khu vực hiển thị Toast (Popup thông báo) -->
+                <!-- Toast Notifications (Dành cho flash message tạm thời) -->
                 <div class="toast-container">
                     {% with messages = get_flashed_messages(with_categories=true) %}
                         {% if messages %}
@@ -140,16 +235,43 @@
         </div>
     </div>
 
+    <!-- Script Bootstrap -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
     <script>
+        // Tự động kích hoạt Toast
         document.addEventListener('DOMContentLoaded', function () {
             var toastElList = [].slice.call(document.querySelectorAll('.toast'))
-            var toastList = toastElList.map(function (toastEl) {
-                return new bootstrap.Toast(toastEl, { delay: 5000 });
-            });
+            var toastList = toastElList.map(function (toastEl) { return new bootstrap.Toast(toastEl, { delay: 5000 }); });
             toastList.forEach(toast => toast.show());
         });
+
+        // HÀM MỚI: XỬ LÝ CLICK CHUÔNG
+        function markNotificationRead() {
+            // 1. Ẩn số đỏ ngay lập tức trên giao diện (UX mượt mà)
+            var badge = document.getElementById('notifBadge');
+            if (badge) {
+                badge.style.display = 'none';
+            }
+            
+            // 2. Gửi yêu cầu ngầm về Server để lưu vào Database (Để lần sau F5 không hiện lại)
+            // Dùng fetch API
+            fetch('/api/mark_notifications_read', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({}) // Gửi body rỗng cho đúng chuẩn POST
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Log kết quả để debug (F12) nếu cần
+                // console.log("Đã đánh dấu đọc:", data);
+            })
+            .catch(error => {
+                console.error("Lỗi gọi API:", error);
+            });
+        }
     </script>
 </body>
 </html>

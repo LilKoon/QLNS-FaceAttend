@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block title %}Quản Lý Xếp Ca{% endblock %}
+
+{% block sidebar %}
+    <style>.submenu .nav-link { padding-left: 2.5rem; font-size: 0.95rem; }</style>
+    <!-- MENU QUẢN LÝ (Mở sẵn) -->
+    <div class="nav-item">
+        <a class="nav-link d-flex justify-content-between align-items-center bg-dark text-white" 
+           data-bs-toggle="collapse" href="#menuQuanLy" aria-expanded="true">
+            <span><i class="fas fa-user-tie me-2 text-warning"></i>QUẢN LÝ</span><i class="fas fa-chevron-down small"></i>
+        </a>
+        <div class="collapse show" id="menuQuanLy">
+            <ul class="nav flex-column submenu bg-dark bg-opacity-50">
+                <li class="nav-item"><a class="nav-link text-white-50 hover-white" href="/admin/TrangChu"><i class="fas fa-tachometer-alt me-2"></i>Tổng Quan</a></li>
+                <li class="nav-item"><a class="nav-link text-white-50 hover-white" href="/admin/nhan_su"><i class="fas fa-users me-2"></i>Nhân Sự</a></li>
+                <li class="nav-item"><a class="nav-link text-white-50 hover-white" href="/admin/cham_cong"><i class="fas fa-calendar-alt me-2"></i>Chấm Công</a></li>
+                <li class="nav-item"><a class="nav-link text-white-50 hover-white" href="/admin/quan_ly_luong"><i class="fas fa-file-invoice-dollar me-2"></i>Tính Lương</a></li>
+                <li class="nav-item"><a class="nav-link active text-white" href="/admin/quan_ly_ca"><i class="fas fa-clock me-2"></i>Xếp Ca</a></li>
+                <li class="nav-item"><a class="nav-link text-white-50 hover-white" href="/admin/face_register"><i class="fas fa-laugh-wink me-2"></i>Đăng Ký Khuôn Mặt</a></li>
+            </ul>
+        </div>
+    </div>
+    <!-- MENU CÁ NHÂN (Đóng) -->
+    <div class="nav-item mt-2">
+        <a class="nav-link collapsed d-flex justify-content-between align-items-center bg-dark text-white" 
+           data-bs-toggle="collapse" href="#menuCaNhan" aria-expanded="false">
+            <span><i class="fas fa-user-circle me-2 text-info"></i>CÁ NHÂN</span><i class="fas fa-chevron-down small"></i>
+        </a>
+        <div class="collapse" id="menuCaNhan">
+            <ul class="nav flex-column submenu bg-dark bg-opacity-50">
+                <li class="nav-item"><a class="nav-link text-white-50 hover-white" href="/admin/personal_home"><i class="fas fa-home me-2"></i>Trang Chủ</a></li>
+                <li class="nav-item"><a class="nav-link text-white-50 hover-white" href="/admin/profile"><i class="fas fa-id-card me-2"></i>Hồ Sơ Của Tôi</a></li>
+                <li class="nav-item"><a class="nav-link text-white-50 hover-white" href="/admin/salary"><i class="fas fa-money-check-alt me-2"></i>Bảng Lương</a></li>
+                <li class="nav-item"><a class="nav-link text-white-50 hover-white" href="/admin/schedule"><i class="fas fa-calendar-alt me-2"></i>Lịch Làm Việc</a></li>
+                <li class="nav-item"><a class="nav-link text-white-50 hover-white" href="/admin/attendlog"><i class="fas fa-history me-2"></i>Công Của Tôi</a></li>
+            </ul>
+        </div>
+    </div>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    
+    <!-- PHẦN 1: XẾP CA TỰ ĐỘNG -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white py-3">
+            <h5 class="mb-0 fw-bold text-primary"><i class="fas fa-robot me-2"></i>Xếp Lịch Tự Động</h5>
+        </div>
+        <div class="card-body">
+            <form action="/admin/quan_ly_ca" method="POST" class="row align-items-end">
+                <input type="hidden" name="action" value="auto_schedule">
+                <div class="col-md-4">
+                    <label class="form-label">Từ ngày</label>
+                    <input type="date" name="tuan_start" class="form-control" required>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Đến ngày</label>
+                    <input type="date" name="tuan_end" class="form-control" required>
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-success w-100" onclick="return confirm('Hệ thống sẽ tự động gán ca cho những nhân viên chưa có lịch trong khoảng thời gian này. Tiếp tục?')">
+                        <i class="fas fa-magic me-2"></i>Thực Hiện Xếp Ca
+                    </button>
+                </div>
+            </form>
+            <div class="text-muted small mt-2">
+                * Chức năng này sẽ tự động điền lịch làm việc mặc định cho tất cả nhân viên trong khoảng thời gian chọn (trừ Chủ Nhật).
+            </div>
+        </div>
+    </div>
+
+    <!-- PHẦN 2: DUYỆT YÊU CẦU -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white py-3">
+            <h5 class="mb-0 fw-bold text-warning text-dark"><i class="fas fa-bell me-2"></i>Danh Sách Yêu Cầu Cần Duyệt</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">Nhân Viên</th>
+                            <th>Loại YC</th>
+                            <th>Nội Dung Chi Tiết</th>
+                            <th>Lý Do</th>
+                            <th>Ngày Gửi</th>
+                            <th class="text-center">Trạng Thái / Hành Động</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if ds_yeu_cau %}
+                            {% for yc in ds_yeu_cau %}
+                            <tr>
+                                <td class="ps-4 fw-bold">{{ yc.HoTen }}</td>
+                                <td>
+                                    {% if yc.LoaiYeuCau == 'XIN_NGHI' %}
+                                        <span class="badge bg-danger">Xin Nghỉ</span>
+                                    {% else %}
+                                        <span class="badge bg-info text-dark">Đổi Ca</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if yc.LoaiYeuCau == 'XIN_NGHI' %}
+                                        Ngày: <strong>{{ yc.NgayCanNghi }}</strong> ({{ yc.TenCaCu }})
+                                    {% else %}
+                                        Từ: <strong>{{ yc.NgayCanNghi }}</strong> ({{ yc.TenCaCu }})<br>
+                                        Sang: <strong>{{ yc.NgayMuonDoi }}</strong> ({{ yc.TenCaMoi }})
+                                    {% endif %}
+                                </td>
+                                <td>{{ yc.LyDo }}</td>
+                                <td class="small text-muted">{{ yc.NgayGui }}</td>
+                                <td class="text-center">
+                                    {% if yc.TrangThai == 'ChoDuyet' %}
+                                        <form action="/admin/quan_ly_ca" method="POST" class="d-inline">
+                                            <input type="hidden" name="action" value="approve_request">
+                                            <input type="hidden" name="ma_yc" value="{{ yc.MaYC }}">
+                                            <button type="submit" name="trang_thai" value="DaDuyet" class="btn btn-sm btn-success me-1" title="Đồng ý">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                            <button type="submit" name="trang_thai" value="TuChoi" class="btn btn-sm btn-danger" title="Từ chối">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </form>
+                                    {% else %}
+                                        {% if yc.TrangThai == 'DaDuyet' %}
+                                            <span class="badge bg-success">Đã Duyệt</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Đã Từ Chối</span>
+                                        {% endif %}
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr><td colspan="6" class="text-center py-4 text-muted">Không có yêu cầu nào mới.</td></tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

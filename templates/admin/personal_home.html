@@ -3,43 +3,38 @@
 {% block title %}Trang Chủ Cá Nhân (Admin){% endblock %}
 
 {% block sidebar %}
-    <style>
-        .nav-group-label { color: #adb5bd; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; padding: 1rem 1rem 0.5rem; letter-spacing: 1px; }
-        .nav-link.collapsed .fas.fa-chevron-down { transform: rotate(-90deg); }
-        .fas.fa-chevron-down { transition: transform 0.3s; }
-        .submenu .nav-link { padding-left: 2.5rem; font-size: 0.95rem; }
-    </style>
-
-    <!-- MENU QUẢN LÝ (Đóng) -->
+    <style>.submenu .nav-link { padding-left: 2.5rem; font-size: 0.95rem; }</style>
+    
     <div class="nav-item">
-        <a class="nav-link collapsed d-flex justify-content-between align-items-center bg-dark text-white" data-bs-toggle="collapse" href="#menuQuanLy">
+        <a class="nav-link collapsed d-flex justify-content-between align-items-center bg-dark text-white" 
+           data-bs-toggle="collapse" href="#menuQuanLy" aria-expanded="false">
             <span><i class="fas fa-user-tie me-2 text-warning"></i>QUẢN LÝ</span><i class="fas fa-chevron-down small"></i>
         </a>
         <div class="collapse" id="menuQuanLy">
             <ul class="nav flex-column submenu bg-dark bg-opacity-50">
                 <li class="nav-item"><a class="nav-link text-white-50 hover-white" href="/admin/TrangChu"><i class="fas fa-tachometer-alt me-2"></i>Tổng Quan</a></li>
-                <li class="nav-item"><a class="nav-link text-white-50 hover-white" href="#">/admin/<i class="fas fa-users me-2"></i>Nhân Sự</a></li>
-                <li class="nav-item"><a class="nav-link text-white-50 hover-white" href="#"><i class="fas fa-calendar-alt me-2"></i>Chấm Công</a></li>
-                <li class="nav-item"><a class="nav-link text-white-50 hover-white" href="#"><i class="fas fa-file-invoice-dollar me-2"></i>Tính Lương</a></li>
-                <li class="nav-item"><a class="nav-link text-white-50 hover-white" href="#"><i class="fas fa-clock me-2"></i>Xếp Ca</a></li>
+                <li class="nav-item"><a class="nav-link text-white-50 hover-white" href="/admin/nhan_su"><i class="fas fa-users me-2"></i>Nhân Sự</a></li>
+                <li class="nav-item"><a class="nav-link text-white-50 hover-white" href="/admin/cham_cong"><i class="fas fa-calendar-alt me-2"></i>Chấm Công</a></li>
+                <li class="nav-item"><a class="nav-link text-white-50 hover-white" href="/admin/quan_ly_luong"><i class="fas fa-file-invoice-dollar me-2"></i>Tính Lương</a></li>
+                <li class="nav-item"><a class="nav-link text-white-50 hover-white" href="/admin/quan_ly_ca"><i class="fas fa-clock me-2"></i>Xếp Ca</a></li>
+                <li class="nav-item"><a class="nav-link text-white-50 hover-white" href="/admin/face_register"><i class="fas fa-laugh-wink me-2"></i>Đăng Ký Khuôn Mặt</a></li>
+
             </ul>
         </div>
     </div>
 
-
     <div class="nav-item mt-2">
         <a class="nav-link d-flex justify-content-between align-items-center bg-dark text-white" 
-           data-bs-toggle="collapse" href="#menuCaNhan" role="button" aria-expanded="true">
-            <span><i class="fas fa-user-circle me-2 text-info"></i>CÁ NHÂN</span>
-            <i class="fas fa-chevron-down small"></i>
+           data-bs-toggle="collapse" href="#menuCaNhan" aria-expanded="true">
+            <span><i class="fas fa-user-circle me-2 text-info"></i>CÁ NHÂN</span><i class="fas fa-chevron-down small"></i>
         </a>
         <div class="collapse show" id="menuCaNhan">
             <ul class="nav flex-column submenu bg-dark bg-opacity-50">
-                <li class="nav-item"><a class="nav-link active text-white" href="/admin/personal_home"><i class="fas fa-home me-2"></i> Trang Chủ</a></li>
-                <li class="nav-item"><a class="nav-link text-white-50 hover-white" href="/admin/profile"><i class="fas fa-id-card me-2"></i> Hồ Sơ Của Tôi</a></li>
-                <li class="nav-item"><a class="nav-link text-white-50 hover-white" href="/admin/salary"><i class="fas fa-money-check-alt me-2"></i> Bảng Lương</a></li>
-                <li class="nav-item"><a class="nav-link text-white-50 hover-white" href="/admin/schedule"><i class="fas fa-calendar-alt me-2"></i> Lịch Làm Việc</a></li>
-                <li class="nav-item"><a class="nav-link text-white-50 hover-white" href="/admin/attendlog"><i class="fas fa-history me-2"></i> Lịch Sử Chấm Công</a></li>
+                <li class="nav-item"><a class="nav-link active text-white" href="/admin/personal_home"><i class="fas fa-home me-2"></i>Trang Chủ</a></li>
+                <li class="nav-item"><a class="nav-link text-white-50 hover-white" href="/admin/profile"><i class="fas fa-id-card me-2"></i>Hồ Sơ Của Tôi</a></li>
+                <li class="nav-item"><a class="nav-link text-white-50 hover-white" href="/admin/salary"><i class="fas fa-money-check-alt me-2"></i>Bảng Lương</a></li>
+                <li class="nav-item"><a class="nav-link text-white-50 hover-white" href="/admin/schedule"><i class="fas fa-calendar-alt me-2"></i>Lịch Làm Việc</a></li>
+                <li class="nav-item"><a class="nav-link text-white-50 hover-white" href="/admin/attendlog"><i class="fas fa-history me-2"></i>Công Của Tôi</a></li>
             </ul>
         </div>
     </div>

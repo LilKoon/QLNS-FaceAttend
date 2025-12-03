@@ -12,11 +12,7 @@
 
 {% block content %}
 <div class="container-fluid">
-    
-    <!-- Đã xóa thông báo flash ở đây vì base.html đã lo việc này -->
-
     <div class="row">
-        <!-- CỘT TRÁI: Form Thông Tin -->
         <div class="col-md-8 mb-4">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-header bg-white border-bottom-0 pt-4 px-4">
@@ -24,68 +20,23 @@
                 </div>
                 <div class="card-body p-4">
                     <form action="/employee/profile" method="POST">
-                        <!-- Hàng 1: Mã NV và Họ Tên -->
                         <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label class="form-label text-muted fw-bold small">Mã Nhân Viên</label>
-                                <div class="input-group">
-                                    <span class="input-group-text bg-light"><i class="fas fa-hashtag"></i></span>
-                                    <input type="text" class="form-control bg-light" value="{{ info.MaNV }}" disabled>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label text-muted fw-bold small">Họ và Tên</label>
-                                <div class="input-group">
-                                    <span class="input-group-text bg-light"><i class="fas fa-user"></i></span>
-                                    <input type="text" class="form-control bg-light" value="{{ info.HoTen }}" disabled>
-                                </div>
-                            </div>
+                            <div class="col-md-6"><label class="form-label text-muted fw-bold small">Mã Nhân Viên</label><input type="text" class="form-control bg-light" value="{{ info.MaNV }}" disabled></div>
+                            <div class="col-md-6"><label class="form-label text-muted fw-bold small">Họ và Tên</label><input type="text" class="form-control bg-light" value="{{ info.HoTen }}" disabled></div>
                         </div>
-
-                        <!-- Hàng 2: Ngày Sinh và CHỨC VỤ (Đã thay đổi Lương -> Chức Vụ) -->
                         <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label class="form-label text-muted fw-bold small">Ngày Sinh</label>
-                                <div class="input-group">
-                                    <span class="input-group-text bg-light"><i class="fas fa-birthday-cake"></i></span>
-                                    <input type="text" class="form-control bg-light" value="{{ info.NamSinh }}" disabled>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label text-muted fw-bold small">Chức Vụ</label>
-                                <div class="input-group">
-                                    <!-- Đổi icon tiền thành icon cặp tài liệu (briefcase) -->
-                                    <span class="input-group-text bg-light"><i class="fas fa-briefcase"></i></span>
-                                    <!-- Hiển thị chức vụ từ database -->
-                                    <input type="text" class="form-control bg-light" value="{{ info.ChucVu }}" disabled>
-                                </div>
-                            </div>
+                            <div class="col-md-6"><label class="form-label text-muted fw-bold small">Ngày Sinh</label><input type="text" class="form-control bg-light" value="{{ info.NamSinh }}" disabled></div>
+                            <div class="col-md-6"><label class="form-label text-muted fw-bold small">Chức Vụ</label><div class="input-group"><span class="input-group-text bg-light"><i class="fas fa-briefcase"></i></span><input type="text" class="form-control bg-light" value="{{ info.ChucVu }}" disabled></div></div>
                         </div>
-
                         <hr class="my-4 text-muted">
-                        
                         <h6 class="text-success mb-3 fw-bold"><i class="fas fa-user-edit me-2"></i>Thông tin liên hệ (Có thể chỉnh sửa)</h6>
-
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Số Điện Thoại</label>
-                            <input type="text" class="form-control border-success" name="sdt" value="{{ info.SoDienThoai }}" placeholder="Nhập số điện thoại...">
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Email</label>
-                            <input type="email" class="form-control border-success" name="email" value="{{ info.Email }}" placeholder="Nhập email...">
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Địa Chỉ</label>
-                            <textarea class="form-control border-success" name="dia_chi" rows="2" placeholder="Nhập địa chỉ thường trú...">{{ info.DiaChi }}</textarea>
-                        </div>
-
+                        <div class="mb-3"><label class="form-label fw-bold">Số Điện Thoại</label><input type="text" class="form-control border-success" name="sdt" value="{{ info.SoDienThoai }}"></div>
+                        <div class="mb-3"><label class="form-label fw-bold">Email</label><input type="email" class="form-control border-success" name="email" value="{{ info.Email }}"></div>
+                        <div class="mb-3"><label class="form-label fw-bold">Địa Chỉ</label><textarea class="form-control border-success" name="dia_chi" rows="2">{{ info.DiaChi }}</textarea></div>
+                        
                         <div class="d-flex justify-content-end mt-4">
                             <button type="reset" class="btn btn-light me-2 border">Khôi phục</button>
-                            <button type="submit" class="btn btn-primary px-4 fw-bold shadow-sm">
-                                <i class="fas fa-save me-2"></i>Lưu Thay Đổi
-                            </button>
+                            <button type="submit" class="btn btn-primary px-4 fw-bold shadow-sm"><i class="fas fa-save me-2"></i>Lưu Thay Đổi</button>
                         </div>
                     </form>
                 </div>
@@ -96,37 +47,57 @@
         <div class="col-md-4 mb-4">
             <div class="card border-0 shadow-sm text-center p-4 h-100">
                 <div class="mb-4 mt-2 position-relative d-inline-block">
-                    <img src="https://ui-avatars.com/api/?name={{ info.HoTen }}&background=0D8ABC&color=fff&size=150" 
-                         class="rounded-circle img-thumbnail shadow-sm" 
-                         alt="Avatar" 
-                         style="width: 150px; height: 150px; object-fit: cover;">
+                    <img src="https://ui-avatars.com/api/?name={{ info.HoTen }}&background=0D8ABC&color=fff&size=150" class="rounded-circle img-thumbnail shadow-sm" alt="Avatar" style="width: 150px; height: 150px; object-fit: cover;">
                 </div>
                 
                 <h4 class="mb-1 fw-bold">{{ info.HoTen }}</h4>
-                <!-- Chức vụ vẫn hiện ở đây như cũ -->
                 <p class="text-muted badge bg-light text-dark border px-3 py-2 mt-2">{{ info.ChucVu }}</p>
                 
                 <div class="card-body px-0 mt-3">
                     <ul class="list-group list-group-flush text-start small">
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            <span><i class="fas fa-calendar-check me-2 text-info"></i>Ngày vào làm</span>
-                            <span class="fw-bold">{{ info.NgayVaoLam }}</span>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            <span><i class="fas fa-building me-2 text-warning"></i>Phòng ban</span>
-                            <span class="fw-bold text-dark">{{ info.TenPhongBan }}</span>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            <span><i class="fas fa-user-tag me-2 text-success"></i>Trạng thái</span>
-                            <span class="badge bg-success">Đang hoạt động</span>
-                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center"><span><i class="fas fa-calendar-check me-2 text-info"></i>Ngày vào làm</span><span class="fw-bold">{{ info.NgayVaoLam }}</span></li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center"><span><i class="fas fa-building me-2 text-warning"></i>Phòng ban</span><span class="fw-bold text-dark">{{ info.TenPhongBan }}</span></li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center"><span><i class="fas fa-user-tag me-2 text-success"></i>Trạng thái</span><span class="badge bg-success">Đang hoạt động</span></li>
                     </ul>
                 </div>
 
                 <div class="d-grid gap-2 mt-auto">
-                    <button class="btn btn-outline-danger btn-sm"><i class="fas fa-key me-2"></i>Đổi Mật Khẩu</button>
+                    <button class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#modalChangePass">
+                        <i class="fas fa-key me-2"></i>Đổi Mật Khẩu
+                    </button>
                 </div>
             </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalChangePass" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title fw-bold"><i class="fas fa-lock me-2"></i>Đổi Mật Khẩu</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="/employee/change_password" method="POST">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Mật khẩu hiện tại</label>
+                        <input type="password" name="mk_cu" class="form-control" required placeholder="Nhập mật khẩu cũ...">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-primary">Mật khẩu mới</label>
+                        <input type="password" name="mk_moi" class="form-control" required placeholder="Nhập mật khẩu mới...">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-primary">Xác nhận mật khẩu mới</label>
+                        <input type="password" name="xac_nhan_mk" class="form-control" required placeholder="Nhập lại mật khẩu mới...">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-danger fw-bold">Xác Nhận Đổi</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>

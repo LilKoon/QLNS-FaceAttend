@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+
 {% block title %}Lịch Làm Việc{% endblock %}
 
 {% block sidebar %}
@@ -12,67 +13,47 @@
 {% block content %}
 <div class="card border-0 shadow-sm">
     <div class="card-header bg-white py-3">
-        <h5 class="mb-0 text-primary fw-bold"><i class="fas fa-calendar-week me-2"></i>Lịch Làm Việc Tuần Này</h5>
-        <small class="text-muted">Từ {{ days[0].display }} đến {{ days[6].display }}</small>
+        <div class="row align-items-center">
+            <div class="col-md-4">
+                <h5 class="mb-0 text-primary fw-bold"><i class="fas fa-calendar-week me-2"></i>Lịch Làm Việc Tuần</h5>
+                <small class="text-muted">Từ {{ days[0].display }} đến {{ days[6].display }}</small>
+            </div>
+            
+            <div class="col-md-8">
+                <div class="d-flex justify-content-end gap-2">
+                    <!-- Cụm điều hướng -->
+                    <div class="btn-group">
+                        <a href="/employee/schedule?date={{ prev_week }}" class="btn btn-outline-secondary btn-sm"><i class="fas fa-chevron-left"></i></a>
+                        <form action="/employee/schedule" method="GET" class="d-inline">
+                            <div class="input-group input-group-sm" style="width: 160px;">
+                                <input type="date" name="date" class="form-control border-secondary" value="{{ curr_date }}" onchange="this.form.submit()">
+                            </div>
+                        </form>
+                        <a href="/employee/schedule?date={{ next_week }}" class="btn btn-outline-secondary btn-sm"><i class="fas fa-chevron-right"></i></a>
+                    </div>
+
+                    <a href="/employee/schedule" class="btn btn-outline-secondary btn-sm" title="Về tuần này">Hôm nay</a>
+                    <button class="btn btn-warning btn-sm text-dark fw-bold" data-bs-toggle="modal" data-bs-target="#modalRequest">
+                        <i class="fas fa-paper-plane me-1"></i>Gửi Yêu Cầu
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
     
     <div class="card-body p-4">
-        <div class="table-responsive">
-            <table class="table table-bordered text-center align-middle" style="table-layout: fixed;">
-                <thead class="bg-primary text-white">
-                    <tr>
-                        {% for day in days %}
-                            <!-- Nếu là hôm nay thì tô đậm tiêu đề -->
-                            <th class="py-3 {% if day.date_str == hom_nay_str %}bg-warning text-dark border-warning{% endif %}">
-                                <div class="fw-bold">{{ day.day_name }}</div>
-                                <div class="small fw-normal">{{ day.display }}</div>
-                            </th>
-                        {% endfor %}
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr style="height: 150px;">
-                        {% for day in days %}
-                            <td class="bg-light position-relative p-2">
-                                <!-- Kiểm tra xem ngày này có dữ liệu trong Dictionary không -->
-                                {% if day.date_str in schedule %}
-                                    {% set ca = schedule[day.date_str] %}
-                                    
-                                    <div class="card border-0 shadow-sm h-100 border-start border-4 border-primary">
-                                        <div class="card-body p-2 d-flex flex-column justify-content-center">
-                                            <h6 class="fw-bold text-primary mb-1">{{ ca.TenCa }}</h6>
-                                            <div class="badge bg-light text-dark border mb-1">
-                                                {{ ca.GioBatDau }} - {{ ca.GioKetThuc }}
-                                            </div>
-                                        </div>
-                                    </div>
-                                {% else %}
-                                    <!-- Không có lịch -> Nghỉ -->
-                                    <div class="d-flex align-items-center justify-content-center h-100 text-muted opacity-50">
-                                        <div>
-                                            <i class="fas fa-bed fa-2x mb-2"></i><br>
-                                            <small>Nghỉ</small>
-                                        </div>
-                                    </div>
-                                {% endif %}
-                                
-                                <!-- Đánh dấu hôm nay -->
-                                {% if day.date_str == hom_nay_str %}
-                                    <span class="position-absolute top-0 start-50 translate-middle badge rounded-pill bg-danger">
-                                        Hôm nay
-                                    </span>
-                                {% endif %}
-                            </td>
-                        {% endfor %}
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-        
-        <div class="mt-3 text-muted small">
-            <i class="fas fa-info-circle me-1"></i>
-            Nếu có thắc mắc về lịch làm việc, vui lòng liên hệ trực tiếp với quản lý.
-        </div>
+        <!-- Bảng lịch (Giữ nguyên) -->
+        <div class="table-responsive"><table class="table table-bordered text-center align-middle" style="table-layout: fixed;"><thead class="bg-primary text-white"><tr>{% for day in days %}<th class="py-3 {% if day.date_str == hom_nay_str %}bg-warning text-dark border-warning{% endif %}"><div class="fw-bold">{{ day.day_name }}</div><div class="small fw-normal">{{ day.display }}</div></th>{% endfor %}</tr></thead><tbody><tr style="height: 150px;">{% for day in days %}<td class="bg-light position-relative p-2">{% if day.date_str in schedule %}{% set ca = schedule[day.date_str] %}<div class="card border-0 shadow-sm h-100 border-start border-4 border-primary"><div class="card-body p-2 d-flex flex-column justify-content-center"><h6 class="fw-bold text-primary mb-1">{{ ca.TenCa }}</h6><div class="badge bg-light text-dark border mb-1">{{ ca.GioBatDau }} - {{ ca.GioKetThuc }}</div></div></div>{% else %}<div class="d-flex align-items-center justify-content-center h-100 text-muted opacity-50"><div><i class="fas fa-bed fa-2x mb-2"></i><br><small>Nghỉ</small></div></div>{% endif %}{% if day.date_str == hom_nay_str %}<span class="position-absolute top-0 start-50 translate-middle badge rounded-pill bg-danger">Hôm nay</span>{% endif %}</td>{% endfor %}</tr></tbody></table></div>
     </div>
 </div>
+
+<!-- Modal (Giữ nguyên) -->
+<div class="modal fade" id="modalRequest" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header bg-warning"><h5 class="modal-title fw-bold"><i class="fas fa-edit me-2"></i>Gửi Yêu Cầu Thay Đổi</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><form action="/employee/schedule" method="POST"><div class="modal-body"><div class="mb-3"><label class="form-label fw-bold">Loại yêu cầu</label><select name="loai_yc" id="loai_yc" class="form-select" onchange="toggleForm()"><option value="XIN_NGHI">Xin Nghỉ Phép</option><option value="DOI_CA">Xin Đổi Ca</option></select></div><div class="mb-3"><label class="form-label fw-bold">Chọn ca làm việc của bạn</label><select name="ca_cu_chon" class="form-select" required>{% if ca_tuong_lai %}{% for ca in ca_tuong_lai %}<option value="{{ ca.NgayLamViec }}|{{ ca.MaCa }}">{{ ca.NgayHienThi }} - {{ ca.TenCa }} ({{ ca.GioBatDau }}-{{ ca.GioKetThuc }})</option>{% endfor %}{% else %}<option value="" disabled selected>Không có ca nào sắp tới để chọn</option>{% endif %}</select><small class="text-muted">* Chỉ có thể chọn các ca chưa diễn ra.</small></div><div id="doiCaArea" style="display: none;"><hr><h6 class="text-primary fw-bold">Thông tin ca muốn đổi sang:</h6><div class="row"><div class="col-md-6 mb-3"><label class="form-label">Ngày mới</label><input type="date" name="ngay_moi" class="form-control"></div><div class="col-md-6 mb-3"><label class="form-label">Ca mới</label><select name="ca_moi" class="form-select">{% for c in all_ca %}<option value="{{ c.MaCa }}">{{ c.TenCa }} ({{ c.GioBatDau }}-{{ c.GioKetThuc }})</option>{% endfor %}</select></div></div></div><div class="mb-3"><label class="form-label fw-bold">Lý do</label><textarea name="ly_do" class="form-control" rows="2" required placeholder="Nhập lý do..."></textarea></div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button><button type="submit" class="btn btn-primary">Gửi Yêu Cầu</button></div></form></div></div></div>
+<script>
+    function toggleForm() {
+        var type = document.getElementById('loai_yc').value;
+        var area = document.getElementById('doiCaArea');
+        if (type === 'DOI_CA') { area.style.display = 'block'; } else { area.style.display = 'none'; }
+    }
+</script>
 {% endblock %}

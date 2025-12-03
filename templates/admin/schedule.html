@@ -2,82 +2,80 @@
 {% block title %}Lịch Làm Việc{% endblock %}
 
 {% block sidebar %}
-    <style>
-        .nav-group-label { color: #adb5bd; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; padding: 1rem 1rem 0.5rem; letter-spacing: 1px; }
-        .nav-link.collapsed .fas.fa-chevron-down { transform: rotate(-90deg); }
-        .fas.fa-chevron-down { transition: transform 0.3s; }
-        .submenu .nav-link { padding-left: 2.5rem; font-size: 0.95rem; }
-    </style>
-
+    <style>.submenu .nav-link { padding-left: 2.5rem; font-size: 0.95rem; }</style>
+    
     <div class="nav-item">
-        <a class="nav-link collapsed d-flex justify-content-between align-items-center bg-dark text-white" data-bs-toggle="collapse" href="#menuQuanLy">
+        <a class="nav-link collapsed d-flex justify-content-between align-items-center bg-dark text-white" 
+           data-bs-toggle="collapse" href="#menuQuanLy" aria-expanded="false">
             <span><i class="fas fa-user-tie me-2 text-warning"></i>QUẢN LÝ</span><i class="fas fa-chevron-down small"></i>
         </a>
         <div class="collapse" id="menuQuanLy">
             <ul class="nav flex-column submenu bg-dark bg-opacity-50">
                 <li class="nav-item"><a class="nav-link text-white-50 hover-white" href="/admin/TrangChu"><i class="fas fa-tachometer-alt me-2"></i>Tổng Quan</a></li>
-                <li class="nav-item"><a class="nav-link text-white-50 hover-white" href="#"><i class="fas fa-users me-2"></i>Nhân Sự</a></li>
-                <li class="nav-item"><a class="nav-link text-white-50 hover-white" href="#"><i class="fas fa-calendar-alt me-2"></i>Chấm Công</a></li>
-                <li class="nav-item"><a class="nav-link text-white-50 hover-white" href="#"><i class="fas fa-file-invoice-dollar me-2"></i>Tính Lương</a></li>
-                <li class="nav-item"><a class="nav-link text-white-50 hover-white" href="#"><i class="fas fa-clock me-2"></i>Xếp Ca</a></li>
+                <li class="nav-item"><a class="nav-link text-white-50 hover-white" href="/admin/nhan_su"><i class="fas fa-users me-2"></i>Nhân Sự</a></li>
+                <li class="nav-item"><a class="nav-link text-white-50 hover-white" href="/admin/cham_cong"><i class="fas fa-calendar-alt me-2"></i>Chấm Công</a></li>
+                <li class="nav-item"><a class="nav-link text-white-50 hover-white" href="/admin/quan_ly_luong"><i class="fas fa-file-invoice-dollar me-2"></i>Tính Lương</a></li>
+                <li class="nav-item"><a class="nav-link text-white-50 hover-white" href="/admin/quan_ly_ca"><i class="fas fa-clock me-2"></i>Xếp Ca</a></li>
+                <li class="nav-item"><a class="nav-link text-white-50 hover-white" href="/admin/face_register"><i class="fas fa-laugh-wink me-2"></i>Đăng Ký Khuôn Mặt</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="nav-item mt-2">
+        <a class="nav-link d-flex justify-content-between align-items-center bg-dark text-white" 
+           data-bs-toggle="collapse" href="#menuCaNhan" aria-expanded="true">
+            <span><i class="fas fa-user-circle me-2 text-info"></i>CÁ NHÂN</span><i class="fas fa-chevron-down small"></i>
+        </a>
+        <div class="collapse show" id="menuCaNhan">
+            <ul class="nav flex-column submenu bg-dark bg-opacity-50">
+                <li class="nav-item"><a class="nav-link text-white-50 hover-white" href="/admin/personal_home"><i class="fas fa-home me-2"></i>Trang Chủ</a></li>
+                <li class="nav-item"><a class="nav-link text-white-50 hover-white" href="/admin/profile"><i class="fas fa-id-card me-2"></i>Hồ Sơ Của Tôi</a></li>
+                <li class="nav-item"><a class="nav-link text-white-50 hover-white" href="/admin/salary"><i class="fas fa-money-check-alt me-2"></i>Bảng Lương</a></li>
+                <li class="nav-item"><a class="nav-link active text-white" href="/admin/schedule"><i class="fas fa-calendar-alt me-2"></i>Lịch Làm Việc</a></li>
+                <li class="nav-item"><a class="nav-link text-white-50 hover-white" href="/admin/attendlog"><i class="fas fa-history me-2"></i>Công Của Tôi</a></li>
             </ul>
         </div>
     </div>
     
-    <div class="nav-item mt-2">
-        <a class="nav-link d-flex justify-content-between align-items-center bg-dark text-white" data-bs-toggle="collapse" href="#menuCaNhan"><span><i class="fas fa-user-circle me-2 text-info"></i>CÁ NHÂN</span><i class="fas fa-chevron-down small"></i></a>
-        <div class="collapse show" id="menuCaNhan">
-            <ul class="nav flex-column submenu bg-dark bg-opacity-50">
-                <li class="nav-item"><a class="nav-link text-white-50 hover-white" href="/admin/personal_home"><i class="fas fa-home me-2"></i> Trang Chủ</a></li>
-                <li class="nav-item"><a class="nav-link text-white-50 hover-white" href="/admin/profile"><i class="fas fa-id-card me-2"></i> Hồ Sơ Của Tôi</a></li>
-                <li class="nav-item"><a class="nav-link text-white-50 hover-white" href="/admin/salary"><i class="fas fa-money-check-alt me-2"></i> Bảng Lương</a></li>
-                <li class="nav-item"><a class="nav-link active text-white" href="/admin/schedule"><i class="fas fa-calendar-alt me-2"></i> Lịch Làm Việc</a></li>
-                <li class="nav-item"><a class="nav-link text-white-50 hover-white" href="/admin/attendlog"><i class="fas fa-history me-2"></i> Lịch Sử Chấm Công</a></li>
-            </ul>
-        </div>
-    </div>
 {% endblock %}
 
 {% block content %}
 <div class="card border-0 shadow-sm">
     <div class="card-header bg-white py-3">
-        <h5 class="mb-0 text-primary fw-bold"><i class="fas fa-calendar-week me-2"></i>Lịch Làm Việc Tuần Này</h5>
-        <small class="text-muted">Từ {{ days[0].display }} đến {{ days[6].display }}</small>
-    </div>
-    <div class="card-body p-4">
-        <div class="table-responsive">
-            <table class="table table-bordered text-center align-middle" style="table-layout: fixed;">
-                <thead class="bg-primary text-white">
-                    <tr>
-                        {% for day in days %}
-                            <th class="py-3 {% if day.date_str == hom_nay_str %}bg-warning text-dark border-warning{% endif %}">
-                                <div class="fw-bold">{{ day.day_name }}</div><div class="small fw-normal">{{ day.display }}</div>
-                            </th>
-                        {% endfor %}
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr style="height: 150px;">
-                        {% for day in days %}
-                            <td class="bg-light position-relative p-2">
-                                {% if day.date_str in schedule %}
-                                    {% set ca = schedule[day.date_str] %}
-                                    <div class="card border-0 shadow-sm h-100 border-start border-4 border-primary">
-                                        <div class="card-body p-2 d-flex flex-column justify-content-center">
-                                            <h6 class="fw-bold text-primary mb-1">{{ ca.TenCa }}</h6>
-                                            <div class="badge bg-light text-dark border mb-1">{{ ca.GioBatDau }} - {{ ca.GioKetThuc }}</div>
-                                        </div>
-                                    </div>
-                                {% else %}
-                                    <div class="d-flex align-items-center justify-content-center h-100 text-muted opacity-50"><div><i class="fas fa-bed fa-2x mb-2"></i><br><small>Nghỉ</small></div></div>
-                                {% endif %}
-                                {% if day.date_str == hom_nay_str %}<span class="position-absolute top-0 start-50 translate-middle badge rounded-pill bg-danger">Hôm nay</span>{% endif %}
-                            </td>
-                        {% endfor %}
-                    </tr>
-                </tbody>
-            </table>
+        <div class="row align-items-center">
+            <div class="col-md-4"><h5 class="mb-0 text-primary fw-bold"><i class="fas fa-calendar-week me-2"></i>Lịch Làm Việc Tuần</h5><small class="text-muted">Từ {{ days[0].display }} đến {{ days[6].display }}</small></div>
+            <div class="col-md-8">
+                <div class="d-flex justify-content-end gap-2">
+                    
+                    <div class="btn-group">
+                        <a href="/admin/schedule?date={{ prev_week }}" class="btn btn-outline-secondary btn-sm"><i class="fas fa-chevron-left"></i></a>
+                        <form action="/admin/schedule" method="GET" class="d-inline">
+                            <div class="input-group input-group-sm" style="width: 160px;">
+                                <input type="date" name="date" class="form-control border-secondary" value="{{ curr_date }}" onchange="this.form.submit()">
+                            </div>
+                        </form>
+                        <a href="/admin/schedule?date={{ next_week }}" class="btn btn-outline-secondary btn-sm"><i class="fas fa-chevron-right"></i></a>
+                    </div>
+
+                    <a href="/admin/schedule" class="btn btn-outline-secondary btn-sm" title="Về tuần này">Hôm nay</a>
+                    <button class="btn btn-warning btn-sm text-dark fw-bold" data-bs-toggle="modal" data-bs-target="#modalRequest"><i class="fas fa-paper-plane me-2"></i>Gửi Yêu Cầu</button>
+                </div>
+            </div>
         </div>
     </div>
+    
+    <div class="card-body p-4">
+        <div class="table-responsive"><table class="table table-bordered text-center align-middle" style="table-layout: fixed;"><thead class="bg-primary text-white"><tr>{% for day in days %}<th class="py-3 {% if day.date_str == hom_nay_str %}bg-warning text-dark border-warning{% endif %}"><div class="fw-bold">{{ day.day_name }}</div><div class="small fw-normal">{{ day.display }}</div></th>{% endfor %}</tr></thead><tbody><tr style="height: 150px;">{% for day in days %}<td class="bg-light position-relative p-2">{% if day.date_str in schedule %}{% set ca = schedule[day.date_str] %}<div class="card border-0 shadow-sm h-100 border-start border-4 border-primary"><div class="card-body p-2 d-flex flex-column justify-content-center"><h6 class="fw-bold text-primary mb-1">{{ ca.TenCa }}</h6><div class="badge bg-light text-dark border mb-1">{{ ca.GioBatDau }} - {{ ca.GioKetThuc }}</div></div></div>{% else %}<div class="d-flex align-items-center justify-content-center h-100 text-muted opacity-50"><div><i class="fas fa-bed fa-2x mb-2"></i><br><small>Nghỉ</small></div></div>{% endif %}{% if day.date_str == hom_nay_str %}<span class="position-absolute top-0 start-50 translate-middle badge rounded-pill bg-danger">Hôm nay</span>{% endif %}</td>{% endfor %}</tr></tbody></table></div>
+    </div>
 </div>
+
+<!-- Modal Gửi Yêu Cầu (Giữ nguyên) -->
+<div class="modal fade" id="modalRequest" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header bg-warning"><h5 class="modal-title fw-bold"><i class="fas fa-edit me-2"></i>Gửi Yêu Cầu Thay Đổi</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><form action="/admin/schedule" method="POST"><div class="modal-body"><div class="mb-3"><label class="form-label fw-bold">Loại yêu cầu</label><select name="loai_yc" id="loai_yc" class="form-select" onchange="toggleForm()"><option value="XIN_NGHI">Xin Nghỉ Phép</option><option value="DOI_CA">Xin Đổi Ca</option></select></div><div class="mb-3"><label class="form-label fw-bold">Chọn ca làm việc của bạn</label><select name="ca_cu_chon" class="form-select" required>{% if ca_tuong_lai %}{% for ca in ca_tuong_lai %}<option value="{{ ca.NgayLamViec }}|{{ ca.MaCa }}">{{ ca.NgayHienThi }} - {{ ca.TenCa }} ({{ ca.GioBatDau }}-{{ ca.GioKetThuc }})</option>{% endfor %}{% else %}<option value="" disabled selected>Không có ca nào sắp tới để chọn</option>{% endif %}</select><small class="text-muted">* Chỉ có thể chọn các ca chưa diễn ra.</small></div><div id="doiCaArea" style="display: none;"><hr><h6 class="text-primary fw-bold">Thông tin ca muốn đổi sang:</h6><div class="row"><div class="col-md-6 mb-3"><label class="form-label">Ngày mới</label><input type="date" name="ngay_moi" class="form-control"></div><div class="col-md-6 mb-3"><label class="form-label">Ca mới</label><select name="ca_moi" class="form-select">{% for c in all_ca %}<option value="{{ c.MaCa }}">{{ c.TenCa }} ({{ c.GioBatDau }}-{{ c.GioKetThuc }})</option>{% endfor %}</select></div></div></div><div class="mb-3"><label class="form-label fw-bold">Lý do</label><textarea name="ly_do" class="form-control" rows="2" required placeholder="Nhập lý do..."></textarea></div></div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button><button type="submit" class="btn btn-primary">Gửi Yêu Cầu</button></div></form></div></div></div>
+<script>
+    function toggleForm() {
+        var type = document.getElementById('loai_yc').value;
+        var area = document.getElementById('doiCaArea');
+        if (type === 'DOI_CA') { area.style.display = 'block'; } else { area.style.display = 'none'; }
+    }
+</script>
 {% endblock %}

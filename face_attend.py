@@ -14,7 +14,7 @@ from gtts import gTTS
 from ham import get_db_connection
 
 # ---------- CẤU HÌNH NHẬN DIỆN ----------
-RECOGNITION_THRESHOLD = 0.5
+RECOGNITION_THRESHOLD = 0.8
 MODEL_NAME = "ArcFace"
 
 # ---------- CẤU HÌNH ÂM THANH (TTS) ----------

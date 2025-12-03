@@ -12,72 +12,36 @@
 
 {% block content %}
 <div class="card border-0 shadow-sm">
-    <div class="card-header bg-white py-3">
-        <div class="row align-items-center">
-            <div class="col-md-4">
-                <h5 class="mb-0 fw-bold text-primary"><i class="fas fa-file-invoice-dollar me-2"></i>Lịch Sử Lương</h5>
-            </div>
+    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+        <h5 class="mb-0 fw-bold text-primary"><i class="fas fa-file-invoice-dollar me-2"></i>Lịch Sử Lương</h5>
+        
+        <div class="d-flex gap-2">
+            <!-- NÚT MỚI: XIN ỨNG LƯƠNG -->
+            <button class="btn btn-warning btn-sm fw-bold" data-bs-toggle="modal" data-bs-target="#modalUngLuong">
+                <i class="fas fa-hand-holding-usd me-1"></i>Xin Ứng Lương
+            </button>
             
-            <!-- THANH CÔNG CỤ -->
-            <div class="col-md-8">
-                <div class="d-flex justify-content-end gap-2">
-                    
-                    <!-- Form Lọc (Để xem trên web) -->
-                    <form action="/employee/salary" method="GET" class="d-flex gap-2">
-                        <!-- Thêm ID để Javascript bắt được -->
-                        <select name="month" id="selectMonth" class="form-select form-select-sm w-auto" onchange="updateExportLink()">
-                            <option value="all">-- Tất cả --</option>
-                            {% for i in range(1, 13) %}
-                                <option value="{{ i }}" {% if sel_thang == i %}selected{% endif %}>Tháng {{ i }}</option>
-                            {% endfor %}
-                        </select>
-                        
-                        <select name="year" id="selectYear" class="form-select form-select-sm w-auto" onchange="updateExportLink()">
-                            {% for y in range(nam_hien_tai, nam_hien_tai - 5, -1) %}
-                                <option value="{{ y }}" {% if sel_nam == y %}selected{% endif %}>Năm {{ y }}</option>
-                            {% endfor %}
-                        </select>
-                        
-                        <button type="submit" class="btn btn-primary btn-sm">
-                            <i class="fas fa-filter"></i> Xem
-                        </button>
-                    </form>
-
-                    <!-- DROPDOWN XUẤT EXCEL -->
-                    <div class="dropdown">
-                        <button class="btn btn-success btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="fas fa-file-excel me-1"></i> Xuất Excel
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end shadow">
-                            <!-- Option 1: Luôn xuất tất cả -->
-                            <li>
-                                <a class="dropdown-item" href="/employee/export_salary?type=all">
-                                    <i class="fas fa-list me-2 text-secondary"></i>Xuất toàn bộ lịch sử
-                                </a>
-                            </li>
-                            <li><hr class="dropdown-divider"></li>
-                            <!-- Option 2: Xuất theo lựa chọn hiện tại (Javascript sẽ sửa link này) -->
-                            <li>
-                                <a class="dropdown-item" id="btnExportSelected" href="#">
-                                    <i class="fas fa-calendar-alt me-2 text-secondary"></i>Xuất theo tháng đang chọn
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
+            <!-- Nút Xuất Excel (Code cũ) -->
+            <div class="dropdown">
+                <button class="btn btn-success btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown"><i class="fas fa-file-excel me-1"></i> Xuất Excel</button>
+                <ul class="dropdown-menu dropdown-menu-end shadow">
+                    <li><a class="dropdown-item" href="/employee/export_salary?type=all">Xuất toàn bộ</a></li>
+                    <li><a class="dropdown-item" id="btnExportSelected" href="#">Xuất theo tháng đang chọn</a></li>
+                </ul>
             </div>
         </div>
     </div>
     
     <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table table-hover table-striped mb-0 align-middle">
+            <table class="table table-hover table-striped mb-0 align-middle small">
                 <thead class="bg-light">
                     <tr>
                         <th class="py-3 ps-4">Kỳ Lương</th>
                         <th class="text-end">Lương Cơ Bản</th>
-                        <th class="text-end text-success">Thưởng (+)</th>
-                        <th class="text-end text-danger">Phạt (-)</th>
+                        <th class="text-end text-success">Thưởng</th>
+                        <th class="text-end text-danger">Phạt</th>
+                        <th class="text-end text-warning">Ứng Lương</th> <!-- Cột Mới -->
                         <th class="text-end fw-bold text-primary pe-4">Thực Lĩnh</th>
                         <th class="text-center">Trạng Thái</th>
                     </tr>
@@ -86,27 +50,18 @@
                     {% if bang_luong %}
                         {% for luong in bang_luong %}
                         <tr>
-                            <td class="ps-4">
-                                <div class="fw-bold">Tháng {{ luong.Thang }}/{{ luong.Nam }}</div>
-                                <small class="text-muted">{{ luong.NgayTao }}</small>
-                            </td>
+                            <td class="ps-4"><div class="fw-bold">Tháng {{ luong.Thang }}/{{ luong.Nam }}</div><small class="text-muted">{{ luong.NgayTao }}</small></td>
                             <td class="text-end">{{ "{:,.0f}".format(luong.LuongCoBan) }} ₫</td>
                             <td class="text-end text-success">{{ "{:,.0f}".format(luong.ThuongThem) }} ₫</td>
                             <td class="text-end text-danger">{{ "{:,.0f}".format(luong.Phat) }} ₫</td>
-                            <td class="text-end pe-4">
-                                <span class="fw-bold fs-5 text-primary">{{ "{:,.0f}".format(luong.Tong) }} ₫</span>
-                            </td>
-                            <td class="text-center">
-                                <span class="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill">
-                                    {{ luong.TrangThai }}
-                                </span>
-                            </td>
+                            <!-- Hiển thị Ứng Lương -->
+                            <td class="text-end text-warning fw-bold">{{ "{:,.0f}".format(luong.UngLuong) }} ₫</td>
+                            <td class="text-end pe-4"><span class="fw-bold fs-5 text-primary">{{ "{:,.0f}".format(luong.Tong) }} ₫</span></td>
+                            <td class="text-center"><span class="badge bg-success bg-opacity-10 text-success px-2">{{ luong.TrangThai }}</span></td>
                         </tr>
                         {% endfor %}
                     {% else %}
-                        <tr>
-                            <td colspan="6" class="text-center py-5 text-muted">Không có dữ liệu.</td>
-                        </tr>
+                        <tr><td colspan="7" class="text-center py-5 text-muted">Chưa có dữ liệu.</td></tr>
                     {% endif %}
                 </tbody>
             </table>
@@ -114,30 +69,46 @@
     </div>
 </div>
 
-<!-- SCRIPT XỬ LÝ LINK EXCEL THÔNG MINH -->
+<!-- MODAL XIN ỨNG LƯƠNG -->
+<div class="modal fade" id="modalUngLuong" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title fw-bold"><i class="fas fa-hand-holding-usd me-2"></i>Đề Xuất Ứng Lương</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="/employee/ung_luong" method="POST">
+                <div class="modal-body">
+                    <div class="alert alert-info small">
+                        <i class="fas fa-info-circle me-1"></i>Số tiền ứng sẽ được trừ trực tiếp vào kỳ lương của tháng bạn chọn.
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Ngày/Tháng muốn ứng</label>
+                        <input type="date" name="ngay_ung" class="form-control" required>
+                        <div class="form-text">Chọn một ngày trong tháng bạn muốn nhận tiền.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Số tiền (VNĐ)</label>
+                        <input type="number" name="so_tien" class="form-control" required min="100000" step="100000" placeholder="Ví dụ: 1000000">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Lý do</label>
+                        <textarea name="ly_do" class="form-control" rows="2" required placeholder="Nhập lý do..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Gửi Yêu Cầu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 <script>
     function updateExportLink() {
-        // 1. Lấy giá trị đang chọn ở Dropdown
-        var month = document.getElementById('selectMonth').value;
-        var year = document.getElementById('selectYear').value;
-        var exportBtn = document.getElementById('btnExportSelected');
-        
-        // 2. Nếu chọn "Tất cả" -> Disable nút xuất tháng
-        if (month === 'all') {
-            exportBtn.classList.add('disabled');
-            exportBtn.innerHTML = '<i class="fas fa-ban me-2 text-muted"></i>Chọn tháng để xuất';
-            exportBtn.href = "#";
-        } else {
-            // 3. Nếu chọn tháng cụ thể -> Cập nhật link href
-            exportBtn.classList.remove('disabled');
-            exportBtn.innerHTML = '<i class="fas fa-file-export me-2 text-success"></i>Xuất Tháng ' + month + '/' + year;
-            exportBtn.href = "/employee/export_salary?type=filter&month=" + month + "&year=" + year;
-        }
+        var month = document.getElementById('selectMonth').value; var year = document.getElementById('selectYear').value; var exportBtn = document.getElementById('btnExportSelected');
+        if (month === 'all') { exportBtn.classList.add('disabled'); exportBtn.href = "#"; } else { exportBtn.classList.remove('disabled'); exportBtn.href = "/employee/export_salary?type=filter&month=" + month + "&year=" + year; }
     }
-
-    // Chạy hàm này 1 lần khi trang vừa load để cập nhật đúng trạng thái ban đầu
-    document.addEventListener('DOMContentLoaded', function() {
-        updateExportLink();
-    });
+    document.addEventListener('DOMContentLoaded', function() { updateExportLink(); });
 </script>
 {% endblock %}
