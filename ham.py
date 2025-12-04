@@ -12,7 +12,12 @@ def get_db_connection():
     "Trusted_Connection=yes;"
     "TrustServerCertificate=yes;"
     )
-    return pyodbc.connect(DB_CONN_STR)
+    try:
+        conn = pyodbc.connect(DB_CONN_STR)
+        return conn
+    except Exception as e:
+        print(f"Lỗi kết nối DB: {e}")
+        return None
 
 # --- 1. XÁC THỰC & TÀI KHOẢN ---
 # ==========================================
@@ -66,9 +71,10 @@ def lay_thong_tin_nhan_vien(ma_nv):
     if not conn: return None
     try:
         cursor = conn.cursor()
+        # Đã thêm e.GioiTinh vào câu truy vấn
         query = """
-        SELECT e.MaNV, e.HoTen, e.NamSinh, e.DiaChi, e.SoDienThoai, e.email, e.LuongCoBan, 
-               e.RoleID as ChucVu, e.NgayVaoLam,
+        SELECT e.MaNV, e.HoTen, e.NamSinh, e.GioiTinh, e.DiaChi, e.SoDienThoai, e.email, 
+               e.LuongCoBan, e.RoleID as ChucVu, e.NgayVaoLam,
                p.TenPhongBan
         FROM Employee e
         LEFT JOIN PhongBan p ON e.PhongBanID = p.PhongBanID
@@ -76,15 +82,41 @@ def lay_thong_tin_nhan_vien(ma_nv):
         """
         cursor.execute(query, (ma_nv,))
         row = cursor.fetchone()
+        
         if row:
+            # Xử lý Ngày Sinh (NamSinh)
+            ngay_sinh = row.NamSinh
+            if ngay_sinh:
+                # Nếu là kiểu date thì format, nếu là chuỗi/số thì để nguyên
+                if hasattr(ngay_sinh, 'strftime'):
+                    ngay_sinh = ngay_sinh.strftime('%d/%m/%Y')
+            else:
+                ngay_sinh = "Chưa cập nhật"
+
+            # Xử lý Ngày Vào Làm
             ngay_vao = row.NgayVaoLam.strftime('%d/%m/%Y') if row.NgayVaoLam else "Chưa cập nhật"
+            
+            # Xử lý Giới Tính (Giả sử DB lưu: 'Nam'/'Nu' hoặc 1/0 hoặc 'M'/'F')
+            gioi_tinh = row.GioiTinh
+            if gioi_tinh == 'M' or gioi_tinh == 1: gioi_tinh = 'Nam'
+            elif gioi_tinh == 'F' or gioi_tinh == 0: gioi_tinh = 'Nữ'
+            # Nếu DB đã lưu là chữ có dấu thì giữ nguyên, nếu None thì báo chưa có
+            if not gioi_tinh: gioi_tinh = "Chưa cập nhật"
+
             phong_ban = row.TenPhongBan if row.TenPhongBan else "Chưa phân phòng"
             
             return {
-                'MaNV': row.MaNV, 'HoTen': row.HoTen, 'NamSinh': row.NamSinh, 
-                'DiaChi': row.DiaChi, 'SoDienThoai': row.SoDienThoai, 'Email': row.email, 
-                'LuongCoBan': row.LuongCoBan, 'ChucVu': row.ChucVu, 
-                'TenPhongBan': phong_ban, 'NgayVaoLam': ngay_vao 
+                'MaNV': row.MaNV, 
+                'HoTen': row.HoTen, 
+                'NamSinh': ngay_sinh,
+                'GioiTinh': gioi_tinh,  # Thêm trường này
+                'DiaChi': row.DiaChi, 
+                'SoDienThoai': row.SoDienThoai, 
+                'Email': row.email, 
+                'LuongCoBan': "{:,.0f}".format(row.LuongCoBan) if row.LuongCoBan else "0", # Format tiền
+                'ChucVu': row.ChucVu, 
+                'TenPhongBan': phong_ban, 
+                'NgayVaoLam': ngay_vao 
             }
         return None
     finally:
@@ -239,18 +271,25 @@ def admin_sua_cham_cong(log_id, gio_vao, gio_ra, ngay_chon, admin_id):
 # --- 4. LƯƠNG (PAYROLL) ---
 # ==========================================
 
-def lay_bang_luong(ma_nv, thang=None, nam=None):
-    """Lấy bảng lương cho nhân viên xem"""
+def lay_bang_luong(ma_nv, thang='all', nam='all'):
+    """Lấy bảng lương cá nhân có hỗ trợ lọc"""
     conn = get_db_connection()
     if not conn: return []
     try:
         cursor = conn.cursor()
         query = "SELECT * FROM Salary WHERE MaNV = ?"
         params = [ma_nv]
-        if thang and nam:
-            query += " AND Thang = ? AND Nam = ?"
-            params.extend([thang, nam])
+        
+        if thang != 'all':
+            query += " AND Thang = ?"
+            params.append(thang)
+            
+        if nam != 'all':
+            query += " AND Nam = ?"
+            params.append(nam)
+            
         query += " ORDER BY Nam DESC, Thang DESC"
+        
         cursor.execute(query, tuple(params))
         
         columns = [column[0] for column in cursor.description]
@@ -263,7 +302,6 @@ def lay_bang_luong(ma_nv, thang=None, nam=None):
     finally: conn.close()
 
 def lay_ds_bang_luong_admin(thang, nam, tu_khoa='', chuc_vu=''):
-    """Lấy bảng lương cho Admin xem (kèm tên, phòng ban, lọc)"""
     conn = get_db_connection()
     if not conn: return []
     try:
@@ -273,24 +311,37 @@ def lay_ds_bang_luong_admin(thang, nam, tu_khoa='', chuc_vu=''):
         FROM Salary s 
         JOIN Employee e ON s.MaNV = e.MaNV 
         LEFT JOIN PhongBan p ON e.PhongBanID = p.PhongBanID 
-        WHERE s.Thang = ? AND s.Nam = ?
+        WHERE 1=1
         """
-        params = [thang, nam]
+        params = []
+        
+        # Logic lọc 'all'
+        if thang != 'all':
+            query += " AND s.Thang = ?"
+            params.append(thang)
+            
+        if nam != 'all':
+            query += " AND s.Nam = ?"
+            params.append(nam)
+            
         if tu_khoa:
             search = f"%{tu_khoa}%"
             query += " AND (e.HoTen LIKE ? OR CAST(e.MaNV AS NVARCHAR) LIKE ?)"
             params.extend([search, search])
+            
         if chuc_vu and chuc_vu != 'all':
             query += " AND e.RoleID = ?"
             params.append(chuc_vu)
             
-        query += " ORDER BY s.SalaryId DESC"
+        query += " ORDER BY s.Nam DESC, s.Thang DESC, s.SalaryId DESC"
+        
         cursor.execute(query, tuple(params))
         
         columns = [column[0] for column in cursor.description]
         results = []
         for row in cursor.fetchall():
             item = dict(zip(columns, row))
+            # Format tiền tệ
             for key in ['LuongCoBan', 'ThuongThem', 'Phat', 'UngLuong', 'NoCu', 'Tong']:
                 val = item.get(key) or 0
                 item[f'{key}_Fmt'] = "{:,.0f}".format(val)
@@ -300,54 +351,92 @@ def lay_ds_bang_luong_admin(thang, nam, tu_khoa='', chuc_vu=''):
     finally: conn.close()
 
 def tinh_toan_va_luu_luong(thang, nam):
-    """Logic tính toán lương tự động"""
+    """Logic tính toán lương: Tự động lấy Công + Lương cứng + Tiền Ứng đã duyệt"""
     conn = get_db_connection()
     if not conn: return False, "Lỗi kết nối DB"
     try:
         cursor = conn.cursor()
-        # Xác định tháng trước để tìm nợ
+        
+        # 1. Xác định nợ cũ (Tháng trước)
         thang_truoc = thang - 1
         nam_truoc = nam
         if thang_truoc == 0: thang_truoc = 12; nam_truoc = nam - 1
         
+        # 2. Tính công chuẩn tháng này
         so_ngay = calendar.monthrange(nam, thang)[1]
-        cong_chuan = (so_ngay - 4) * 8
+        cong_chuan = (so_ngay - 4) * 8 # Giả sử nghỉ 4 chủ nhật
         
+        # 3. Lấy danh sách nhân viên và lương cơ bản hiện tại
         cursor.execute("SELECT MaNV, LuongCoBan FROM Employee")
         nv_list = cursor.fetchall()
+        
         count = 0
         for nv in nv_list:
-            ma_nv = nv.MaNV; luong_cb = nv.LuongCoBan or 0
+            ma_nv = nv.MaNV
+            luong_cb = float(nv.LuongCoBan) if nv.LuongCoBan else 0
             
-            # Tính công
-            cursor.execute("SELECT SUM(DATEDIFF(MINUTE, CheckIn, CheckOut)) FROM AttendLog WHERE MaNV = ? AND MONTH(CheckIn) = ? AND YEAR(CheckIn) = ? AND CheckOut IS NOT NULL", (ma_nv, thang, nam))
+            # --- TÍNH CÔNG THỰC TẾ ---
+            cursor.execute("""
+                SELECT SUM(DATEDIFF(MINUTE, CheckIn, CheckOut)) 
+                FROM AttendLog 
+                WHERE MaNV = ? AND MONTH(CheckIn) = ? AND YEAR(CheckIn) = ? AND CheckOut IS NOT NULL
+            """, (ma_nv, thang, nam))
             res_gio = cursor.fetchone()
-            tong_gio = (res_gio[0] / 60.0) if res_gio[0] else 0
+            tong_gio = (res_gio[0] / 60.0) if res_gio and res_gio[0] else 0
             
-            luong_cong = (float(luong_cb) / cong_chuan) * tong_gio if cong_chuan > 0 else 0
-            luong_theo_cong = round(luong_theo_cong)
+            # Tính lương theo công (Fix lỗi cũ ở đây: luong_theo_cong -> luong_cong)
+            luong_cong = (luong_cb / cong_chuan) * tong_gio if cong_chuan > 0 else 0
+            luong_cong = round(luong_cong) 
 
-            # Tìm nợ cũ
+            # --- TỰ ĐỘNG LẤY TIỀN ỨNG ĐÃ DUYỆT (Logic mới) ---
+            # Chỉ lấy những yêu cầu loại UNG_LUONG và trạng thái DaDuyet trong tháng này
+            cursor.execute("""
+                SELECT SUM(SoTien) FROM YeuCau 
+                WHERE MaNV = ? AND LoaiYeuCau = 'UNG_LUONG' AND TrangThai = N'DaDuyet'
+                AND MONTH(NgayTao) = ? AND YEAR(NgayTao) = ?
+            """, (ma_nv, thang, nam))
+            row_ung = cursor.fetchone()
+            tien_ung_da_duyet = row_ung[0] if row_ung and row_ung[0] else 0
+
+            # --- TÌM NỢ CŨ ---
             cursor.execute("SELECT Tong FROM Salary WHERE MaNV = ? AND Thang = ? AND Nam = ?", (ma_nv, thang_truoc, nam_truoc))
             row_prev = cursor.fetchone()
             no_cu = abs(row_prev.Tong) if row_prev and row_prev.Tong < 0 else 0
             
-            # Update/Insert
-            cursor.execute("SELECT SalaryId, ThuongThem, Phat, UngLuong FROM Salary WHERE MaNV = ? AND Thang = ? AND Nam = ?", (ma_nv, thang, nam))
+            # --- CẬP NHẬT / TẠO MỚI BẢNG LƯƠNG ---
+            cursor.execute("SELECT SalaryId, ThuongThem, Phat FROM Salary WHERE MaNV = ? AND Thang = ? AND Nam = ?", (ma_nv, thang, nam))
             row_sal = cursor.fetchone()
+            
             if row_sal:
-                thuong = row_sal.ThuongThem or 0; phat = row_sal.Phat or 0; ung = row_sal.UngLuong or 0
-                tong = round(luong_cong + float(thuong) - float(phat) - float(ung) - float(no_cu))
-                cursor.execute("UPDATE Salary SET LuongCoBan=?, SoCongChuan=?, SoCongThucTe=?, NoCu=?, Tong=?, NgayTao=GETDATE() WHERE SalaryId=?", (luong_cb, cong_chuan, tong_gio, no_cu, tong, row_sal.SalaryId))
+                # Nếu đã có bản ghi -> Giữ nguyên Thưởng/Phạt cũ, Cập nhật Ứng + Công + Lương CB
+                thuong = row_sal.ThuongThem or 0
+                phat = row_sal.Phat or 0
+                
+                # Tổng = Lương Công + Thưởng - Phạt - (Ứng tự động) - Nợ cũ
+                tong = round(luong_cong + float(thuong) - float(phat) - float(tien_ung_da_duyet) - float(no_cu))
+                
+                cursor.execute("""
+                    UPDATE Salary 
+                    SET LuongCoBan=?, SoCongChuan=?, SoCongThucTe=?, UngLuong=?, NoCu=?, Tong=?, NgayTao=GETDATE() 
+                    WHERE SalaryId=?
+                """, (luong_cb, cong_chuan, tong_gio, tien_ung_da_duyet, no_cu, tong, row_sal.SalaryId))
             else:
-                tong = round(luong_cong - float(no_cu))
-                cursor.execute("INSERT INTO Salary (MaNV, Thang, Nam, LuongCoBan, SoCongChuan, SoCongThucTe, ThuongThem, Phat, UngLuong, NoCu, Tong, TrangThai, NgayTao) VALUES (?,?,?,?,?,?,0,0,0,?,?,N'Chờ duyệt',GETDATE())", (ma_nv, thang, nam, luong_cb, cong_chuan, tong_gio, no_cu, tong))
+                # Nếu chưa có -> Tạo mới
+                tong = round(luong_cong - float(tien_ung_da_duyet) - float(no_cu))
+                cursor.execute("""
+                    INSERT INTO Salary (MaNV, Thang, Nam, LuongCoBan, SoCongChuan, SoCongThucTe, ThuongThem, Phat, UngLuong, NoCu, Tong, TrangThai, NgayTao) 
+                    VALUES (?,?,?,?,?,?,0,0,?,?,?,N'Chờ duyệt',GETDATE())
+                """, (ma_nv, thang, nam, luong_cb, cong_chuan, tong_gio, tien_ung_da_duyet, no_cu, tong))
+            
             count += 1
+            
         conn.commit()
-        return True, f"Đã tính cho {count} người"
+        return True, f"Đã tính lại lương cho {count} nhân viên (Cập nhật cả tiền ứng)."
     except Exception as e:
+        print(f"Lỗi tính lương: {str(e)}") # In lỗi ra terminal để debug nếu cần
         return False, str(e)
-    finally: conn.close()
+    finally:
+        conn.close()
 
 def cap_nhat_thuong_phat(salary_id, thuong, phat, ung_luong, admin_id):
     """Sửa thủ công Thưởng/Phạt/Ứng -> Tính lại Tổng"""
@@ -418,32 +507,43 @@ def duyet_tat_ca_luong_thang(thang, nam, tu_khoa='', chuc_vu=''):
 # --- 5. QUẢN LÝ NHÂN SỰ (ADMIN) ---
 # ==========================================
 
-def lay_danh_sach_nhan_vien(tu_khoa='', cac_truong=None):
+def lay_danh_sach_nhan_vien(tu_khoa='', filters=[]):
     conn = get_db_connection()
     if not conn: return []
     try:
         cursor = conn.cursor()
+        
+        # SỬA: Thêm JOIN bảng ChucVu (cv) để lấy TenChucVu
+        # SỬA: Lấy cv.TenChucVu thay vì a.RoleID để hiển thị tên đẹp hơn
         query = """
-        SELECT e.MaNV, e.HoTen, e.NamSinh, e.SoDienThoai, e.email, e.LuongCoBan, 
-               e.RoleID as ChucVu, e.NgayVaoLam, p.TenPhongBan,
-               a.TaiKhoan, a.MatKhau
-        FROM Employee e
-        LEFT JOIN PhongBan p ON e.PhongBanID = p.PhongBanID
+        SELECT e.MaNV, e.HoTen, e.SoDienThoai, e.email, 
+               e.LuongCoBan, e.PhongBanID, e.NamSinh, e.GioiTinh,
+               a.TaiKhoan, a.MatKhau, 
+               cv.TenChucVu as ChucVu, -- Lấy tên chức vụ từ bảng ChucVu
+               p.TenPhongBan 
+        FROM Employee e 
         LEFT JOIN Account a ON e.MaNV = a.MaNV
-        WHERE 1=1 
+        LEFT JOIN PhongBan p ON e.PhongBanID = p.PhongBanID 
+        LEFT JOIN ChucVu cv ON e.RoleID = cv.RoleID -- Join bảng Chức vụ
+        WHERE 1=1
         """
         params = []
+        
         if tu_khoa:
-            search = f"%{tu_khoa}%"
-            conds = []
-            mapping = {'ma_nv': 'CAST(e.MaNV AS NVARCHAR)', 'ho_ten': 'e.HoTen', 'chuc_vu': 'e.RoleID', 'phong_ban': 'p.TenPhongBan'}
-            if cac_truong:
-                for f in cac_truong:
-                    if f in mapping: conds.append(f"{mapping[f]} LIKE ?"); params.append(search)
-            else:
-                for c in mapping.values(): conds.append(f"{c} LIKE ?"); params.append(search)
-            if conds: query += " AND (" + " OR ".join(conds) + ")"
+            search_term = f"%{tu_khoa}%"
+            conditions = []
+            if not filters or 'ma_nv' in filters: conditions.append("CAST(e.MaNV AS NVARCHAR) LIKE ?")
+            if not filters or 'ho_ten' in filters: conditions.append("e.HoTen LIKE ?")
+            if not filters or 'phong_ban' in filters: conditions.append("p.TenPhongBan LIKE ?")
             
+            # SỬA: Tìm kiếm theo TenChucVu thay vì RoleID
+            if not filters or 'chuc_vu' in filters: 
+                conditions.append("cv.TenChucVu LIKE ?") 
+            
+            if conditions:
+                query += " AND (" + " OR ".join(conditions) + ")"
+                params.extend([search_term] * len(conditions))
+                
         query += " ORDER BY e.MaNV DESC"
         cursor.execute(query, tuple(params))
         
@@ -451,42 +551,111 @@ def lay_danh_sach_nhan_vien(tu_khoa='', cac_truong=None):
         results = []
         for row in cursor.fetchall():
             item = dict(zip(columns, row))
-            if item.get('LuongCoBan'): item['LuongCoBan'] = "{:,.0f}".format(item['LuongCoBan'])
-            if item.get('NgayVaoLam'): item['NgayVaoLam'] = item['NgayVaoLam'].strftime('%d/%m/%Y')
-            if not item.get('TaiKhoan'): item['TaiKhoan'] = ''; item['MatKhau'] = ''
+            item['LuongCoBan'] = "{:,.0f}".format(item['LuongCoBan']) if item['LuongCoBan'] else "0"
+            item['NgaySinh_Iso'] = item['NamSinh'].strftime('%Y-%m-%d') if item['NamSinh'] else ""
+            
+            # Xử lý hiển thị nếu chưa có tài khoản
+            if not item['TaiKhoan']: 
+                item['TaiKhoan'] = "Chưa cấp"
+                item['MatKhau'] = "---"
+                # ChucVu đã lấy từ bảng ChucVu nên không cần gán lại từ Account nữa, 
+                # trừ khi muốn xử lý trường hợp NULL
+                if not item['ChucVu']: item['ChucVu'] = "Chưa phân công"
+
             results.append(item)
         return results
+    except Exception as e:
+        print(f"Error fetching employees: {e}")
+        return []
     finally: conn.close()
 
-def them_nhan_vien_moi(ho_ten, sdt, email, chuc_vu, luong, phong_ban_id, tai_khoan, mat_khau):
+def them_nhan_vien_moi(ho_ten, sdt, email, chuc_vu, luong, phong_ban, tai_khoan, mat_khau, gioi_tinh, ngay_sinh):
     conn = get_db_connection()
     if not conn: return False
+    
     try:
         cursor = conn.cursor()
-        cursor.execute("INSERT INTO Employee (HoTen, SoDienThoai, email, RoleID, LuongCoBan, PhongBanID, NgayVaoLam) OUTPUT INSERTED.MaNV VALUES (?, ?, ?, ?, ?, ?, GETDATE())", (ho_ten, sdt, email, chuc_vu, luong, phong_ban_id))
-        ma_nv = cursor.fetchone()[0]
-        cursor.execute("INSERT INTO Account (MaNV, TaiKhoan, MatKhau, RoleID) VALUES (?, ?, ?, ?)", (ma_nv, tai_khoan, mat_khau, chuc_vu))
+        
+        # 1. Kiểm tra trùng tài khoản
+        cursor.execute("SELECT Count(*) FROM Account WHERE TaiKhoan = ?", (tai_khoan,))
+        if cursor.fetchone()[0] > 0: 
+            print("Tài khoản đã tồn tại")
+            return False
+
+        # 2. Thêm vào bảng Employee -> Lấy ID vừa tạo
+        # SỬA LỖI QUAN TRỌNG: Thêm 'SET NOCOUNT ON;' ở đầu
+        # Điều này ngăn SQL trả về thông báo '1 row affected' làm nhiễu lệnh fetchone()
+        query_emp = """
+        SET NOCOUNT ON; 
+        INSERT INTO Employee (HoTen, SoDienThoai, email, LuongCoBan, PhongBanID, GioiTinh, NamSinh, NgayVaoLam, RoleID) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, GETDATE(), ?);
+        SELECT SCOPE_IDENTITY(); -- Lấy MaNV vừa sinh ra
+        """
+        
+        cursor.execute(query_emp, (ho_ten, sdt, email, luong, phong_ban, gioi_tinh, ngay_sinh, chuc_vu))
+        
+        # Lấy MaNV mới
+        row_id = cursor.fetchone()
+        if not row_id or row_id[0] is None: 
+            print("Không lấy được ID nhân viên")
+            return False
+            
+        ma_nv_moi = int(row_id[0])
+        print(f"Đã thêm Employee với ID: {ma_nv_moi}")
+        
+        # 3. Thêm vào bảng Account (Liên kết bằng MaNV)
+        query_acc = """
+        INSERT INTO Account (MaNV, TaiKhoan, MatKhau, RoleID)
+        VALUES (?, ?, ?, ?)
+        """
+        cursor.execute(query_acc, (ma_nv_moi, tai_khoan, mat_khau, chuc_vu))
+        
         conn.commit()
         return True
-    except: return False
-    finally: conn.close()
 
-def cap_nhat_nhan_vien_admin(ma_nv, ho_ten, sdt, email, chuc_vu, luong, phong_ban_id, tai_khoan, mat_khau):
+    except Exception as e:
+        conn.rollback() # Nên rollback nếu có lỗi xảy ra giữa chừng
+        print(f"Lỗi thêm NV: {e}")
+        return False
+        
+    finally: 
+        conn.close()
+    
+def cap_nhat_nhan_vien_admin(ma_nv, ho_ten, sdt, email, chuc_vu, luong, phong_ban, tai_khoan, mat_khau, gioi_tinh, ngay_sinh):
     conn = get_db_connection()
     if not conn: return False
     try:
         cursor = conn.cursor()
-        cursor.execute("UPDATE Employee SET HoTen=?, SoDienThoai=?, email=?, RoleID=?, LuongCoBan=?, PhongBanID=? WHERE MaNV=?", (ho_ten, sdt, email, chuc_vu, luong, phong_ban_id, ma_nv))
         
-        cursor.execute("SELECT COUNT(*) FROM Account WHERE MaNV = ?", (ma_nv,))
-        if cursor.fetchone()[0]:
-            cursor.execute("UPDATE Account SET TaiKhoan=?, MatKhau=?, RoleID=? WHERE MaNV=?", (tai_khoan, mat_khau, chuc_vu, ma_nv))
+        # 1. Kiểm tra trùng tài khoản (trừ tài khoản của chính user này)
+        cursor.execute("SELECT Count(*) FROM Account WHERE TaiKhoan = ? AND MaNV != ?", (tai_khoan, ma_nv))
+        if cursor.fetchone()[0] > 0: return False
+
+        # 2. Cập nhật bảng Employee
+        query_emp = """
+        UPDATE Employee 
+        SET HoTen=?, SoDienThoai=?, email=?, LuongCoBan=?, PhongBanID=?, GioiTinh=?, NamSinh=?
+        WHERE MaNV=?
+        """
+        cursor.execute(query_emp, (ho_ten, sdt, email, luong, phong_ban, gioi_tinh, ngay_sinh, ma_nv))
+        
+        # 3. Cập nhật hoặc Thêm mới bảng Account (nếu trước đó chưa có)
+        # Kiểm tra xem nhân viên này đã có tài khoản chưa
+        cursor.execute("SELECT Count(*) FROM Account WHERE MaNV = ?", (ma_nv,))
+        co_tk = cursor.fetchone()[0] > 0
+        
+        if co_tk:
+            query_acc = "UPDATE Account SET TaiKhoan=?, MatKhau=?, RoleID=? WHERE MaNV=?"
+            cursor.execute(query_acc, (tai_khoan, mat_khau, chuc_vu, ma_nv))
         else:
-            cursor.execute("INSERT INTO Account (MaNV, TaiKhoan, MatKhau, RoleID) VALUES (?, ?, ?, ?)", (ma_nv, tai_khoan, mat_khau, chuc_vu))
-        
+            query_acc = "INSERT INTO Account (MaNV, TaiKhoan, MatKhau, RoleID) VALUES (?, ?, ?, ?)"
+            cursor.execute(query_acc, (ma_nv, tai_khoan, mat_khau, chuc_vu))
+
         conn.commit()
         return True
-    except: return False
+    except Exception as e:
+        print(f"Lỗi sửa NV: {e}")
+        return False
     finally: conn.close()
 
 def xoa_nhan_vien(ma_nv):
@@ -494,14 +663,46 @@ def xoa_nhan_vien(ma_nv):
     if not conn: return False
     try:
         cursor = conn.cursor()
-        for t in ['Account','Salary','AttendLog','PhanCa','FaceData','YeuCau','AuditLog']:
-             try: cursor.execute(f"DELETE FROM {t} WHERE MaNV=?", (ma_nv,))
-             except: pass
-        cursor.execute("DELETE FROM Employee WHERE MaNV=?", (ma_nv,))
+        
+        # BƯỚC 1: Lấy thông tin nhân viên để lưu trữ
+        cursor.execute("""
+            SELECT HoTen, SoDienThoai, email, LuongCoBan, PhongBanID, GioiTinh, NamSinh, NgayVaoLam 
+            FROM Employee WHERE MaNV = ?
+        """, (ma_nv,))
+        emp = cursor.fetchone()
+        
+        if not emp: return False # Không tìm thấy nhân viên
+        
+        # BƯỚC 2: Chuyển dữ liệu sang bảng NghiViec (Archive)
+        query_archive = """
+        INSERT INTO NghiViec (MaNV_Cu, HoTen, SoDienThoai, Email, LuongCoBan, PhongBanID, GioiTinh, NamSinh, NgayVaoLam, NgayNghiViec)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, GETDATE())
+        """
+        cursor.execute(query_archive, (
+            ma_nv, emp.HoTen, emp.SoDienThoai, emp.email, 
+            emp.LuongCoBan, emp.PhongBanID, emp.GioiTinh, emp.NamSinh, emp.NgayVaoLam
+        ))
+        
+        # BƯỚC 3: Xóa sạch dữ liệu liên quan để tránh lỗi khóa ngoại (Foreign Key)
+        # Phải xóa các bảng con trước khi xóa bảng cha (Employee)
+        cursor.execute("DELETE FROM Account WHERE MaNV = ?", (ma_nv,))   # Xóa tài khoản đăng nhập
+        cursor.execute("DELETE FROM Salary WHERE MaNV = ?", (ma_nv,))    # Xóa lịch sử lương
+        cursor.execute("DELETE FROM AttendLog WHERE MaNV = ?", (ma_nv,)) # Xóa lịch sử chấm công
+        cursor.execute("DELETE FROM YeuCau WHERE MaNV = ?", (ma_nv,))    # Xóa các yêu cầu
+        cursor.execute("DELETE FROM PhanCa WHERE MaNV = ?", (ma_nv,))    # Xóa phân ca làm việc
+        
+        # BƯỚC 4: Xóa Nhân viên khỏi hệ thống chính
+        cursor.execute("DELETE FROM Employee WHERE MaNV = ?", (ma_nv,))
+        
         conn.commit()
         return True
-    except: return False
-    finally: conn.close()
+    except Exception as e:
+        print(f"Lỗi quy trình nghỉ việc: {e}")
+        # Nếu lỗi thì rollback lại toàn bộ để không bị mất dữ liệu nửa vời
+        conn.rollback() 
+        return False
+    finally: 
+        conn.close()
 
 def lay_danh_sach_phong_ban():
     conn = get_db_connection()
@@ -607,58 +808,173 @@ def duyet_yeu_cau(ma_yc, trang_thai):
     except Exception as e: print(e); return False
     finally: conn.close()
 
-def gui_yeu_cau_ung_luong(ma_nv, so_tien, ly_do, ngay_ung):
+def gui_yeu_cau_ung_luong(ma_nv, so_tien, ly_do, ngay_ung_str):
     conn = get_db_connection()
-    if not conn: return False, "Lỗi DB"
+    if not conn: return False, "Lỗi kết nối DB"
     try:
         cursor = conn.cursor()
-        cursor.execute("SELECT LuongCoBan FROM Employee WHERE MaNV=?", (ma_nv,)); luong = cursor.fetchone().LuongCoBan or 0
-        if so_tien > float(luong) * 0.5: return False, "Vượt quá 50%"
-        cursor.execute("INSERT INTO YeuCau (MaNV, LoaiYeuCau, LyDo, SoTien, NgayCanNghi, TrangThai, NgayGui, DaDoc) VALUES (?, 'UNG_LUONG', ?, ?, ?, N'ChoDuyet', GETDATE(), 0)", (ma_nv, ly_do, so_tien, ngay_ung))
-        conn.commit(); return True, "Thành công"
-    except Exception as e: return False, str(e)
-    finally: conn.close()
+        
+        # Parse ngày tháng
+        ngay_ung_date = datetime.strptime(ngay_ung_str, '%Y-%m-%d')
+        thang = ngay_ung_date.month
+        nam = ngay_ung_date.year
+        
+        # 1. KIỂM TRA: Lương tháng đó đã chốt chưa?
+        cursor.execute("SELECT TrangThai FROM Salary WHERE MaNV = ? AND Thang = ? AND Nam = ?", (ma_nv, thang, nam))
+        row_sal = cursor.fetchone()
+        if row_sal and row_sal.TrangThai == 'Đã thanh toán':
+            return False, f"Tháng {thang}/{nam} đã chốt lương, không thể ứng thêm."
+
+        # 2. KIỂM TRA: Hạn mức 50%
+        # Lưu ý: Gọi hàm nội bộ để tính tổng đã ứng trước đó
+        cursor.execute("SELECT LuongCoBan FROM Employee WHERE MaNV=?", (ma_nv,))
+        luong_cb = float(cursor.fetchone().LuongCoBan or 0)
+        
+        cursor.execute("""
+            SELECT SUM(SoTien) FROM YeuCau 
+            WHERE MaNV = ? AND LoaiYeuCau = 'UNG_LUONG' 
+            AND TrangThai IN (N'DaDuyet', N'ChoDuyet') 
+            AND MONTH(NgayCanNghi) = ? AND YEAR(NgayCanNghi) = ?
+        """, (ma_nv, thang, nam))
+        da_ung = float(cursor.fetchone()[0] or 0)
+        
+        tong_sau_khi_ung = da_ung + so_tien
+        if tong_sau_khi_ung > (luong_cb * 0.5):
+            con_lai = (luong_cb * 0.5) - da_ung
+            return False, f"Vượt quá hạn mức 50%. Bạn chỉ còn được ứng tối đa {int(con_lai):,}đ"
+
+        # 3. INSERT (Sử dụng NgayCanNghi để lưu ngày muốn ứng)
+        # NgayGui là ngày hiện tại (GETDATE)
+        cursor.execute("""
+            INSERT INTO YeuCau (MaNV, LoaiYeuCau, LyDo, SoTien, NgayCanNghi, TrangThai, NgayGui, DaDoc) 
+            VALUES (?, 'UNG_LUONG', ?, ?, ?, N'ChoDuyet', GETDATE(), 0)
+        """, (ma_nv, ly_do, so_tien, ngay_ung_str))
+        
+        conn.commit()
+        return True, "Gửi yêu cầu thành công"
+    except Exception as e:
+        return False, str(e)
+    finally:
+        conn.close()
 
 def lay_ds_yeu_cau_ung_luong():
     conn = get_db_connection()
     if not conn: return []
     try:
         cursor = conn.cursor()
-        cursor.execute("SELECT y.*, e.HoTen FROM YeuCau y JOIN Employee e ON y.MaNV = e.MaNV WHERE y.LoaiYeuCau='UNG_LUONG' AND y.TrangThai=N'ChoDuyet' ORDER BY y.NgayGui DESC")
+        # Lấy danh sách, sắp xếp theo ngày gửi mới nhất
+        cursor.execute("""
+            SELECT y.*, e.HoTen 
+            FROM YeuCau y 
+            JOIN Employee e ON y.MaNV = e.MaNV 
+            WHERE y.LoaiYeuCau='UNG_LUONG' AND y.TrangThai=N'ChoDuyet' 
+            ORDER BY y.NgayGui DESC
+        """)
         res = []
+        columns = [c[0] for c in cursor.description]
         for r in cursor.fetchall():
-            it = dict(zip([c[0] for c in cursor.description], r))
+            it = dict(zip(columns, r))
             it['SoTien_Fmt'] = "{:,.0f}".format(it['SoTien'])
-            it['ThangNam'] = it['NgayCanNghi'].strftime('%m/%Y') if it['NgayCanNghi'] else ""
+            # Hiển thị tháng muốn ứng dựa trên NgayCanNghi
+            it['ThangNam'] = it['NgayCanNghi'].strftime('%m/%Y') if it['NgayCanNghi'] else "N/A"
             res.append(it)
         return res
-    finally: conn.close()
+    finally:
+        conn.close()
 
 def duyet_ung_luong(ma_yc, trang_thai, admin_id):
-    """Duyệt ứng lương -> Reset DaDoc=0 để báo cho User"""
     conn = get_db_connection()
-    if not conn: return False
+    if not conn: return False, "Lỗi kết nối CSDL"
+    
     try:
         cursor = conn.cursor()
-        # QUAN TRỌNG: Reset DaDoc = 0
-        cursor.execute("UPDATE YeuCau SET TrangThai=?, DaDoc=0 WHERE MaYC=?", (trang_thai, ma_yc))
         
-        if trang_thai == 'DaDuyet':
-            cursor.execute("SELECT MaNV, SoTien, NgayCanNghi FROM YeuCau WHERE MaYC=?", (ma_yc,)); req = cursor.fetchone()
-            ma=req.MaNV; tien=req.SoTien; t=req.NgayCanNghi.month; n=req.NgayCanNghi.year
-            cursor.execute("SELECT SalaryId, UngLuong FROM Salary WHERE MaNV=? AND Thang=? AND Nam=?", (ma,t,n)); sal=cursor.fetchone()
-            if sal:
-                new_ung = (sal.UngLuong or 0) + tien
-                cursor.execute("UPDATE Salary SET UngLuong=? WHERE SalaryId=?", (new_ung, sal.SalaryId))
-                cursor.execute("SELECT LuongCoBan, SoCongChuan, SoCongThucTe, ThuongThem, Phat FROM Salary WHERE SalaryId=?", (sal.SalaryId,)); s = cursor.fetchone()
-                lc = (float(s.LuongCoBan)/float(s.SoCongChuan)*float(s.SoCongThucTe)) if s.SoCongChuan and s.SoCongThucTe else 0
-                tong = round(lc + float(s.ThuongThem or 0) - float(s.Phat or 0) - float(new_ung))
-                cursor.execute("UPDATE Salary SET Tong=? WHERE SalaryId=?", (tong, sal.SalaryId))
-            else:
-                cursor.execute("INSERT INTO Salary (MaNV,Thang,Nam,LuongCoBan,UngLuong,Tong,TrangThai,NgayTao) VALUES (?,?,?,0,?, ?, N'Chờ duyệt', GETDATE())", (ma,t,n,tien, -tien))
-        conn.commit(); return True
-    except: return False
-    finally: conn.close()
+        # 1. Lấy thông tin yêu cầu (Dựa vào NgayCanNghi để biết ứng cho tháng nào)
+        cursor.execute("SELECT MaNV, SoTien, NgayCanNghi FROM YeuCau WHERE MaYC = ?", (ma_yc,))
+        yc_info = cursor.fetchone()
+        
+        if not yc_info: 
+            return False, "Không tìm thấy yêu cầu này."
+        
+        ma_nv = yc_info.MaNV
+        so_tien = float(yc_info.SoTien)
+        
+        # Xử lý ngày tháng
+        raw_date = yc_info.NgayCanNghi
+        if isinstance(raw_date, str):
+            target_date = datetime.strptime(raw_date, '%Y-%m-%d')
+        else:
+            target_date = raw_date
+            
+        thang = target_date.month
+        nam = target_date.year
+
+        # 2. KIỂM TRA TRẠNG THÁI BẢNG LƯƠNG
+        cursor.execute("SELECT SalaryId, TrangThai, UngLuong, Tong FROM Salary WHERE MaNV = ? AND Thang = ? AND Nam = ?", (ma_nv, thang, nam))
+        row_sal = cursor.fetchone()
+        
+        # Chặn nếu đã thanh toán
+        if row_sal and row_sal.TrangThai == 'Đã thanh toán':
+            return False, f"Lương tháng {thang}/{nam} đã thanh toán. Không thể duyệt nữa."
+
+        # 3. CẬP NHẬT TRẠNG THÁI YÊU CẦU
+        cursor.execute("UPDATE YeuCau SET TrangThai = ?, NguoiDuyet = ? WHERE MaYC = ?", (trang_thai, admin_id, ma_yc))
+        
+        # 4. CẬP NHẬT BẢNG LƯƠNG (Chỉ cập nhật nếu bảng lương ĐÃ TỒN TẠI)
+        # Nếu chưa có bảng lương (VD ứng cho tháng sau), hệ thống sẽ tự tính khi Admin bấm nút "Tính Lương" vào tháng sau.
+        if trang_thai == 'DaDuyet' and row_sal:
+            curr_ung = float(row_sal.UngLuong or 0)
+            curr_tong = float(row_sal.Tong or 0)
+            
+            new_ung = curr_ung + so_tien
+            new_tong = curr_tong - so_tien 
+            
+            cursor.execute("UPDATE Salary SET UngLuong = ?, Tong = ? WHERE SalaryId = ?", (new_ung, new_tong, row_sal.SalaryId))
+            
+        conn.commit()
+        return True, "Cập nhật thành công!"
+        
+    except Exception as e:
+        print(f"Lỗi duyệt: {e}")
+        return False, str(e)
+    finally:
+        conn.close()
+        
+def lay_han_muc_ung_luong(ma_nv, thang, nam):
+    """
+    Tính hạn mức dựa trên tháng mà nhân viên MUỐN ỨNG (NgayCanNghi)
+    Trả về: (Lương CB, Đã ứng tháng đó, Còn lại)
+    """
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        
+        # 1. Lấy lương cơ bản
+        cursor.execute("SELECT LuongCoBan FROM Employee WHERE MaNV = ?", (ma_nv,))
+        row_nv = cursor.fetchone()
+        luong_cb = float(row_nv.LuongCoBan) if row_nv and row_nv.LuongCoBan else 0
+        
+        # 2. Tính tổng tiền đã ứng trong THÁNG ĐÓ (Dựa vào NgayCanNghi)
+        # Bao gồm cả 'DaDuyet' và 'ChoDuyet'
+        query_sum = """
+            SELECT SUM(SoTien) 
+            FROM YeuCau 
+            WHERE MaNV = ? 
+            AND LoaiYeuCau = 'UNG_LUONG' 
+            AND TrangThai IN (N'DaDuyet', N'ChoDuyet') 
+            AND MONTH(NgayCanNghi) = ? AND YEAR(NgayCanNghi) = ?
+        """
+        cursor.execute(query_sum, (ma_nv, thang, nam))
+        row_sum = cursor.fetchone()
+        da_ung = float(row_sum[0]) if row_sum and row_sum[0] else 0
+        
+        # 3. Tính toán
+        max_duoc_ung = luong_cb * 0.5
+        con_lai = max_duoc_ung - da_ung
+        
+        return luong_cb, da_ung, con_lai
+    finally:
+        conn.close()
 
 # --- 7. THÔNG BÁO & LOG (AUDIT) ---
 def lay_thong_bao_ca_nhan(ma_nv, role_id):

@@ -41,7 +41,7 @@
 
 {% block content %}
 
-<!-- PHẦN 1: DUYỆT YÊU CẦU ỨNG LƯƠNG (Chỉ hiện nếu có yêu cầu) -->
+<!-- PHẦN 1: DUYỆT YÊU CẦU ỨNG LƯƠNG -->
 {% if ds_yeu_cau_ung %}
 <div class="card border-0 shadow-sm mb-4 border-start border-4 border-warning">
     <div class="card-header bg-white py-3">
@@ -69,7 +69,7 @@
                         <td class="text-center">
                             <form action="/admin/duyet_ung_luong" method="POST" class="d-inline">
                                 <input type="hidden" name="ma_yc" value="{{ yc.MaYC }}">
-                                <button type="submit" name="trang_thai" value="DaDuyet" class="btn btn-sm btn-success me-1" title="Đồng ý" onclick="return confirm('Duyệt ứng lương cho nhân viên này? Số tiền sẽ tự động trừ vào bảng lương.')">
+                                <button type="submit" name="trang_thai" value="DaDuyet" class="btn btn-sm btn-success me-1" title="Đồng ý" onclick="return confirm('Duyệt ứng lương cho nhân viên này?')">
                                     <i class="fas fa-check"></i>
                                 </button>
                                 <button type="submit" name="trang_thai" value="TuChoi" class="btn btn-sm btn-danger" title="Từ chối">
@@ -90,7 +90,12 @@
 <div class="card border-0 shadow-sm">
     <div class="card-header bg-white py-3">
         <div class="row align-items-center">
-            <div class="col-md-3"><h5 class="mb-0 fw-bold text-primary"><i class="fas fa-calculator me-2"></i>Bảng Lương Tháng {{ thang }}/{{ nam }}</h5></div>
+            <div class="col-md-3">
+                <h5 class="mb-0 fw-bold text-primary">
+                    <i class="fas fa-calculator me-2"></i>
+                    {% if thang == 'all' %}Toàn Bộ Lương{% else %}Lương Tháng {{ thang }}/{{ nam }}{% endif %}
+                </h5>
+            </div>
             
             <div class="col-md-9">
                 <div class="d-flex justify-content-end gap-2 align-items-center">
@@ -110,17 +115,34 @@
                             <input type="text" name="keyword" class="form-control" placeholder="Tên hoặc Mã NV..." value="{{ curr_keyword }}">
                         </div>
                         
+                        <!-- SELECT THÁNG (Có option ALL) -->
                         <select name="month" class="form-select form-select-sm w-auto">
-                            {% for i in range(1, 13) %}<option value="{{ i }}" {% if thang == i %}selected{% endif %}>Tháng {{ i }}</option>{% endfor %}
+                            <option value="all" {% if thang == 'all' %}selected{% endif %}>Tất cả Tháng</option>
+                            {% for i in range(1, 13) %}
+                                <option value="{{ i }}" {% if thang == i %}selected{% endif %}>Tháng {{ i }}</option>
+                            {% endfor %}
                         </select>
+
+                        <!-- SELECT NĂM (Có option ALL) -->
                         <select name="year" class="form-select form-select-sm w-auto">
-                            {% for y in range(hien_tai.year, hien_tai.year - 3, -1) %}<option value="{{ y }}" {% if nam == y %}selected{% endif %}>{{ y }}</option>{% endfor %}
+                            <option value="all" {% if nam == 'all' %}selected{% endif %}>Tất cả Năm</option>
+                            {% for y in range(hien_tai.year, hien_tai.year - 3, -1) %}
+                                <option value="{{ y }}" {% if nam == y %}selected{% endif %}>{{ y }}</option>
+                            {% endfor %}
                         </select>
                         
                         <button type="submit" class="btn btn-primary btn-sm">Xem</button>
+                        
+                        <!-- NÚT XUẤT EXCEL (ROUTE MỚI) -->
+                        <a href="/admin/export_quan_ly_luong?month={{ thang }}&year={{ nam }}&keyword={{ curr_keyword }}&role={{ curr_role }}" 
+                           class="btn btn-outline-success btn-sm fw-bold" 
+                           title="Xuất Excel danh sách đang hiển thị">
+                            <i class="fas fa-file-excel me-1"></i> Xuất Excel
+                        </a>
                     </form>
 
-                    <!-- Nút Tính Lương -->
+                    <!-- Nút Tính Lương (Chỉ hiện khi chọn Tháng cụ thể) -->
+                    {% if thang != 'all' and nam != 'all' %}
                     <form action="/admin/tinh_luong" method="POST" onsubmit="return confirm('Tính lại sẽ ghi đè dữ liệu cũ. Bạn chắc chứ?');">
                         <input type="hidden" name="thang" value="{{ thang }}">
                         <input type="hidden" name="nam" value="{{ nam }}">
@@ -141,6 +163,7 @@
                         </button>
                     </form>
                     {% endif %}
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -152,15 +175,16 @@
                 <thead class="bg-light">
                     <tr>
                         <th class="ps-3" style="width: 18%;">Nhân Viên</th>
+                        {% if thang == 'all' or nam == 'all' %}<th class="text-center" style="width: 8%;">Kỳ</th>{% endif %}
                         <th class="text-center" style="width: 10%;">Công</th>
                         <th class="text-end" style="width: 10%;">Lương Gốc</th>
-                        <th class="text-end text-success" style="width: 10%;">Thưởng</th>
-                        <th class="text-end text-danger" style="width: 10%;">Phạt</th>
+                        <th class="text-end text-success" style="width: 8%;">Thưởng</th>
+                        <th class="text-end text-danger" style="width: 8%;">Phạt</th>
                         <th class="text-end text-warning" style="width: 10%;">Ứng Lương</th>
                         <th class="text-end text-secondary" style="width: 8%;">Nợ Cũ</th>
                         <th class="text-end fw-bold" style="width: 12%;">Tổng Lĩnh</th>
                         <th class="text-center" style="width: 10%;">Trạng Thái</th>
-                        <th class="text-center" style="width: 10%;">Thao Tác</th>
+                        <th class="text-center" style="width: 8%;">Thao Tác</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -171,6 +195,9 @@
                                 <div class="fw-bold">{{ item.HoTen }} <span class="text-muted small">#{{ item.MaNV }}</span></div>
                                 <span class="text-muted small">{{ item.TenPhongBan }}</span>
                             </td>
+                            {% if thang == 'all' or nam == 'all' %}
+                            <td class="text-center"><span class="badge bg-light text-dark border">{{ item.Thang }}/{{ item.Nam }}</span></td>
+                            {% endif %}
                             <td class="text-center">{{ item.SoCongThucTe }}h / {{ item.SoCongChuan }}h</td>
                             <td class="text-end">{{ item.LuongCoBan_Fmt }}</td>
                             <td class="text-end text-success">{{ item.ThuongThem_Fmt }}</td>
@@ -191,12 +218,10 @@
                                         onclick="dienDuLieu('{{ item.SalaryId }}', '{{ item.HoTen }}', '{{ item.ThuongThem }}', '{{ item.Phat }}', '{{ item.UngLuong }}')">
                                     <i class="fas fa-edit"></i>
                                 </button>
-
                                 {% if item.TrangThai != 'Đã thanh toán' %}
-                                    <a href="/admin/duyet-luong/{{ item.SalaryId }}?month={{ thang }}&year={{ nam }}" 
+                                    <a href="/admin/duyet-luong/{{ item.SalaryId }}?month={{ item.Thang }}&year={{ item.Nam }}" 
                                        class="btn btn-sm btn-outline-success border-0 ms-1" 
-                                       title="Duyệt từng người"
-                                       onclick="return confirm('Duyệt lương cho {{ item.HoTen }}?')">
+                                       title="Duyệt" onclick="return confirm('Duyệt lương này?')">
                                         <i class="fas fa-check-circle"></i>
                                     </a>
                                 {% else %}
@@ -206,11 +231,10 @@
                         </tr>
                         {% endfor %}
                     {% else %}
-                        <!-- SỬA COLSPAN = 10 ĐỂ KHÔNG BỊ VỠ KHUNG -->
                         <tr>
-                            <td colspan="10" class="text-center py-5 text-muted">
+                            <td colspan="12" class="text-center py-5 text-muted">
                                 <i class="fas fa-search fa-3x mb-3 opacity-25"></i>
-                                <p class="mb-0">Chưa có bảng lương tháng này hoặc không tìm thấy nhân viên.</p>
+                                <p class="mb-0">Không tìm thấy dữ liệu phù hợp.</p>
                             </td>
                         </tr>
                     {% endif %}
@@ -252,10 +276,8 @@
                             <input type="number" name="ung_luong" id="edit_ung_luong" class="form-control" value="0">
                         </div>
                     </div>
-                    
                     <div class="alert alert-info small mb-0">
-                        <i class="fas fa-info-circle me-1"></i>Hệ thống sẽ tự động tính lại <strong>Tổng Lĩnh</strong> sau khi lưu.<br>
-                        <em>Tổng = Lương Công + Thưởng - Phạt - Ứng - Nợ cũ</em>
+                        <i class="fas fa-info-circle me-1"></i>Hệ thống sẽ tự động tính lại <strong>Tổng Lĩnh</strong> sau khi lưu.
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -267,12 +289,12 @@
     </div>
 </div>
 
-<!-- Modal Lịch Sử Chỉnh Sửa -->
+<!-- Modal Lịch Sử -->
 <div class="modal fade" id="modalHistoryLog" tabindex="-1">
     <div class="modal-dialog modal-lg modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header bg-info text-white">
-                <h5 class="modal-title fw-bold"><i class="fas fa-history me-2"></i>Lịch Sử Thay Đổi Lương</h5>
+                <h5 class="modal-title fw-bold"><i class="fas fa-history me-2"></i>Lịch Sử Thay Đổi</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body p-0">
@@ -281,7 +303,7 @@
                         <tr>
                             <th>Thời gian</th>
                             <th>Người thực hiện</th>
-                            <th>Nội dung thay đổi</th>
+                            <th>Nội dung</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -294,14 +316,12 @@
                             </tr>
                             {% endfor %}
                         {% else %}
-                            <tr><td colspan="3" class="text-center py-3">Chưa có lịch sử thay đổi nào.</td></tr>
+                            <tr><td colspan="3" class="text-center py-3">Chưa có lịch sử.</td></tr>
                         {% endif %}
                     </tbody>
                 </table>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Đóng</button>
-            </div>
+            <div class="modal-footer"><button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Đóng</button></div>
         </div>
     </div>
 </div>

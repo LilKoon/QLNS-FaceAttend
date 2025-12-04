@@ -4,7 +4,7 @@
 
 {% block sidebar %}
     <style>.submenu .nav-link { padding-left: 2.5rem; font-size: 0.95rem; }</style>
-    <!-- MENU QUẢN LÝ (Mở sẵn) -->
+    <!-- MENU QUẢN LÝ -->
     <div class="nav-item">
         <a class="nav-link d-flex justify-content-between align-items-center bg-dark text-white" 
            data-bs-toggle="collapse" href="#menuQuanLy" aria-expanded="true">
@@ -21,7 +21,7 @@
             </ul>
         </div>
     </div>
-    <!-- MENU CÁ NHÂN (Đóng) -->
+    <!-- MENU CÁ NHÂN -->
     <div class="nav-item mt-2">
         <a class="nav-link collapsed d-flex justify-content-between align-items-center bg-dark text-white" 
            data-bs-toggle="collapse" href="#menuCaNhan" aria-expanded="false">
@@ -47,65 +47,24 @@
                 <h5 class="mb-0 fw-bold text-primary"><i class="fas fa-users me-2"></i>Danh Sách Nhân Viên</h5>
             </div>
             
-            <!-- KHU VỰC TÌM KIẾM & LỌC (FORM BACKEND) -->
             <div class="col-md-6 mb-2 mb-md-0">
                 <form action="/admin/nhan_su" method="GET">
                     <div class="input-group">
-                        <!-- Nút Danh Mục (Dropdown Checkbox) -->
                         <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="fas fa-filter me-1"></i> Danh Mục
                         </button>
-                        
-                        <!-- Dropdown Menu -->
                         <ul class="dropdown-menu p-3 shadow" style="min-width: 220px;">
                             <li><h6 class="dropdown-header">Tìm kiếm trong:</h6></li>
-                            
-                            <!-- Checkbox: Mặc định KHÔNG check -->
-                            <!-- Nếu đã tìm kiếm, dùng curr_filters để giữ trạng thái check -->
-                            <li>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" name="filters" value="ma_nv" id="checkMaNV"
-                                    {% if 'ma_nv' in curr_filters %}checked{% endif %}>
-                                    <label class="form-check-label" for="checkMaNV">Mã Nhân Viên</label>
-                                </div>
-                            </li>
-                            <li>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" name="filters" value="phong_ban" id="checkPhongBan"
-                                    {% if 'phong_ban' in curr_filters %}checked{% endif %}>
-                                    <label class="form-check-label" for="checkPhongBan">Phòng Ban</label>
-                                </div>
-                            </li>
-                            <li>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" name="filters" value="chuc_vu" id="checkChucVu"
-                                    {% if 'chuc_vu' in curr_filters %}checked{% endif %}>
-                                    <label class="form-check-label" for="checkChucVu">Chức Vụ</label>
-                                </div>
-                            </li>
+                            <li><div class="form-check"><input class="form-check-input" type="checkbox" name="filters" value="ma_nv" id="checkMaNV" {% if 'ma_nv' in curr_filters %}checked{% endif %}><label class="form-check-label" for="checkMaNV">Mã Nhân Viên</label></div></li>
+                            <li><div class="form-check"><input class="form-check-input" type="checkbox" name="filters" value="phong_ban" id="checkPhongBan" {% if 'phong_ban' in curr_filters %}checked{% endif %}><label class="form-check-label" for="checkPhongBan">Phòng Ban</label></div></li>
+                            <li><div class="form-check"><input class="form-check-input" type="checkbox" name="filters" value="chuc_vu" id="checkChucVu" {% if 'chuc_vu' in curr_filters %}checked{% endif %}><label class="form-check-label" for="checkChucVu">Chức Vụ</label></div></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" name="filters" value="ho_ten" id="checkHoTen"
-                                    {% if 'ho_ten' in curr_filters %}checked{% endif %}>
-                                    <label class="form-check-label" for="checkHoTen">Họ Tên</label>
-                                </div>
-                            </li>
+                            <li><div class="form-check"><input class="form-check-input" type="checkbox" name="filters" value="ho_ten" id="checkHoTen" {% if 'ho_ten' in curr_filters %}checked{% endif %}><label class="form-check-label" for="checkHoTen">Họ Tên</label></div></li>
                         </ul>
-                        
-                        <!-- Search Bar -->
                         <input type="text" class="form-control" name="keyword" placeholder="Nhập từ khóa..." value="{{ curr_keyword }}">
-                        
-                        <!-- Button Tìm -->
-                        <button class="btn btn-primary" type="submit">
-                            <i class="fas fa-search"></i>
-                        </button>
-                        
-                        <!-- Nút Reset (nếu đang tìm kiếm) -->
+                        <button class="btn btn-primary" type="submit"><i class="fas fa-search"></i></button>
                         {% if curr_keyword or curr_filters %}
-                        <a href="/admin/nhan_su" class="btn btn-outline-secondary" title="Xóa lọc">
-                            <i class="fas fa-times"></i>
-                        </a>
+                        <a href="/admin/nhan_su" class="btn btn-outline-secondary" title="Xóa lọc"><i class="fas fa-times"></i></a>
                         {% endif %}
                     </div>
                 </form>
@@ -126,6 +85,7 @@
                     <tr>
                         <th class="ps-4">Mã NV</th>
                         <th>Họ Tên</th>
+                        <th>Giới Tính</th>
                         <th>Chức Vụ</th>
                         <th>Tài Khoản</th>
                         <th>Phòng Ban</th>
@@ -141,6 +101,7 @@
                                 <div class="fw-bold">{{ nv.HoTen }}</div>
                                 <small class="text-muted">{{ nv.email }}</small>
                             </td>
+                            <td>{{ nv.GioiTinh }}</td>
                             <td>
                                 {% if nv.ChucVu == 'QuanLyCapCao' %}<span class="badge bg-danger">Admin</span>
                                 {% elif nv.ChucVu == 'QuanLyCapThap' %}<span class="badge bg-warning text-dark">Quản Lý</span>
@@ -148,13 +109,13 @@
                             </td>
                             <td>
                                 <div class="small fw-bold text-primary">{{ nv.TaiKhoan }}</div>
-                                <div class="small text-muted" style="font-size: 0.75rem;">Pass: {{ nv.MatKhau }}</div>
                             </td>
                             <td>{{ nv.TenPhongBan }}</td>
                             <td class="text-end pe-4">
+                                <!-- NÚT SỬA: Đã thêm GioiTinh, NgaySinh vào hàm onclick -->
                                 <button class="btn btn-sm btn-outline-primary me-1" 
-                                        data-bs-toggle="modal" data-bs-target="#modalSuaNV"
-                                        onclick="dienDuLieuSua('{{ nv.MaNV }}', '{{ nv.HoTen }}', '{{ nv.SoDienThoai }}', '{{ nv.email }}', '{{ nv.ChucVu }}', '{{ nv.LuongCoBan.replace(',','') }}', '{{ nv.PhongBanID }}', '{{ nv.TaiKhoan }}', '{{ nv.MatKhau }}')">
+                                    data-bs-toggle="modal" data-bs-target="#modalSuaNV"
+                                    onclick="dienDuLieuSua('{{ nv.MaNV }}', '{{ nv.HoTen }}', '{{ nv.SoDienThoai }}', '{{ nv.email }}', '{{ nv.ChucVu }}', '{{ nv.LuongCoBan.replace(',','') }}', '{{ nv.PhongBanID }}', '{{ nv.TaiKhoan }}', '{{ nv.MatKhau }}', '{{ nv.GioiTinh }}', '{{ nv.NgaySinh_Iso }}')">
                                     <i class="fas fa-edit"></i>
                                 </button>
                                 <a href="/admin/nhan_su/xoa/{{ nv.MaNV }}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Bạn có chắc chắn muốn xóa nhân viên này?')">
@@ -164,12 +125,7 @@
                         </tr>
                         {% endfor %}
                     {% else %}
-                        <tr>
-                            <td colspan="6" class="text-center py-5 text-muted">
-                                <i class="fas fa-search fa-2x mb-3 opacity-25"></i>
-                                <p class="mb-0">Không tìm thấy kết quả nào phù hợp.</p>
-                            </td>
-                        </tr>
+                        <tr><td colspan="7" class="text-center py-5 text-muted"><p class="mb-0">Không tìm thấy kết quả nào phù hợp.</p></td></tr>
                     {% endif %}
                 </tbody>
             </table>
@@ -187,24 +143,51 @@
             </div>
             <form action="/admin/nhan_su/them" method="POST">
                 <div class="modal-body">
-                    <h6 class="text-primary fw-bold mb-3">1. Thông tin cá nhân</h6>
+                    <h6 class="text-primary fw-bold mb-3">1. Thông tin cá nhân (Bắt buộc)</h6>
                     <div class="row">
-                        <div class="col-md-6 mb-3"><label class="form-label fw-bold">Họ và Tên</label><input type="text" name="ho_ten" class="form-control" required></div>
-                        <div class="col-md-6 mb-3"><label class="form-label fw-bold">Lương Cơ Bản (VNĐ)</label><input type="number" name="luong" class="form-control" required></div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3"><label class="form-label fw-bold">Số Điện Thoại</label><input type="text" name="sdt" class="form-control"></div>
-                        <div class="col-md-6 mb-3"><label class="form-label fw-bold">Email</label><input type="email" name="email" class="form-control"></div>
-                    </div>
-                    <hr>
-                    <h6 class="text-success fw-bold mb-3">2. Thiết lập tài khoản & Công việc</h6>
-                    <div class="row">
-                        <div class="col-md-6 mb-3"><label class="form-label fw-bold">Tên Đăng Nhập</label><input type="text" name="tai_khoan" class="form-control" required placeholder="Ví dụ: nv_a"></div>
-                        <div class="col-md-6 mb-3"><label class="form-label fw-bold">Mật Khẩu</label><input type="text" name="mat_khau" class="form-control" required value="123456"></div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Họ và Tên <span class="text-danger">*</span></label>
+                            <input type="text" name="ho_ten" class="form-control" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Ngày Sinh <span class="text-danger">*</span></label>
+                            <input type="date" name="ngay_sinh" class="form-control" required>
+                        </div>
                     </div>
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold">Chức Vụ / Quyền</label>
+                            <label class="form-label fw-bold">Giới Tính <span class="text-danger">*</span></label>
+                            <select name="gioi_tinh" class="form-select" required>
+                                <option value="Nam">Nam</option>
+                                <option value="Nữ">Nữ</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Lương Cơ Bản <span class="text-danger">*</span></label>
+                            <input type="number" name="luong" class="form-control" required placeholder="VNĐ">
+                        </div>
+                    </div>
+                    
+                    <h6 class="text-secondary fw-bold mb-3 mt-2">Thông tin liên hệ (Không bắt buộc)</h6>
+                    <div class="row">
+                        <div class="col-md-6 mb-3"><label class="form-label">Số Điện Thoại</label><input type="text" name="sdt" class="form-control"></div>
+                        <div class="col-md-6 mb-3"><label class="form-label">Email</label><input type="email" name="email" class="form-control"></div>
+                    </div>
+                    <hr>
+                    <h6 class="text-success fw-bold mb-3">2. Tài khoản & Công việc (Bắt buộc)</h6>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Tên Đăng Nhập <span class="text-danger">*</span></label>
+                            <input type="text" name="tai_khoan" class="form-control" required placeholder="Ví dụ: nv_a">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Mật Khẩu <span class="text-danger">*</span></label>
+                            <input type="text" name="mat_khau" class="form-control" required value="123456">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Chức Vụ</label>
                             <select name="chuc_vu" class="form-select">
                                 <option value="NhanVien">Nhân Viên</option>
                                 <option value="QuanLyCapThap">Quản Lý Cấp Thấp</option>
@@ -238,18 +221,29 @@
                     <input type="hidden" name="ma_nv" id="edit_ma_nv">
                     <h6 class="text-primary fw-bold mb-3">1. Thông tin cá nhân</h6>
                     <div class="row">
-                        <div class="col-md-6 mb-3"><label class="form-label fw-bold">Họ và Tên</label><input type="text" name="ho_ten" id="edit_ho_ten" class="form-control" required></div>
-                        <div class="col-md-6 mb-3"><label class="form-label fw-bold">Lương Cơ Bản</label><input type="number" name="luong" id="edit_luong" class="form-control" required></div>
+                        <div class="col-md-6 mb-3"><label class="form-label fw-bold">Họ và Tên <span class="text-danger">*</span></label><input type="text" name="ho_ten" id="edit_ho_ten" class="form-control" required></div>
+                        <div class="col-md-6 mb-3"><label class="form-label fw-bold">Ngày Sinh <span class="text-danger">*</span></label><input type="date" name="ngay_sinh" id="edit_ngay_sinh" class="form-control" required></div>
                     </div>
                     <div class="row">
-                        <div class="col-md-6 mb-3"><label class="form-label fw-bold">Số Điện Thoại</label><input type="text" name="sdt" id="edit_sdt" class="form-control"></div>
-                        <div class="col-md-6 mb-3"><label class="form-label fw-bold">Email</label><input type="email" name="email" id="edit_email" class="form-control"></div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Giới Tính <span class="text-danger">*</span></label>
+                            <select name="gioi_tinh" id="edit_gioi_tinh" class="form-select" required>
+                                <option value="Nam">Nam</option>
+                                <option value="Nữ">Nữ</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3"><label class="form-label fw-bold">Lương Cơ Bản <span class="text-danger">*</span></label><input type="number" name="luong" id="edit_luong" class="form-control" required></div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3"><label class="form-label">Số Điện Thoại</label><input type="text" name="sdt" id="edit_sdt" class="form-control"></div>
+                        <div class="col-md-6 mb-3"><label class="form-label">Email</label><input type="email" name="email" id="edit_email" class="form-control"></div>
                     </div>
                     <hr>
-                    <h6 class="text-success fw-bold mb-3">2. Cài đặt Tài khoản (Reset mật khẩu)</h6>
+                    <h6 class="text-success fw-bold mb-3">2. Tài khoản</h6>
                     <div class="row">
-                        <div class="col-md-6 mb-3"><label class="form-label fw-bold">Tên Đăng Nhập</label><input type="text" name="tai_khoan" id="edit_tai_khoan" class="form-control" required></div>
-                        <div class="col-md-6 mb-3"><label class="form-label fw-bold">Mật Khẩu Mới</label><input type="text" name="mat_khau" id="edit_mat_khau" class="form-control" required><small class="text-muted">Nhập mật khẩu mới nếu muốn đổi</small></div>
+                        <div class="col-md-6 mb-3"><label class="form-label fw-bold">Tên Đăng Nhập <span class="text-danger">*</span></label><input type="text" name="tai_khoan" id="edit_tai_khoan" class="form-control" required></div>
+                        <div class="col-md-6 mb-3"><label class="form-label fw-bold">Mật Khẩu <span class="text-danger">*</span></label><input type="text" name="mat_khau" id="edit_mat_khau" class="form-control" required></div>
                     </div>
                     <div class="row">
                         <div class="col-md-6 mb-3">
@@ -275,17 +269,19 @@
 </div>
 
 <script>
-    function dienDuLieuSua(ma, ten, sdt, email, chucvu, luong, phongban, taikhoan, matkhau) {
+    function dienDuLieuSua(ma, ten, sdt, email, chucvu, luong, phongban, taikhoan, matkhau, gioitinh, ngaysinh) {
         document.getElementById('edit_ma_nv').value = ma;
         document.getElementById('edit_ho_ten').value = ten;
-        document.getElementById('edit_sdt').value = sdt;
-        document.getElementById('edit_email').value = email;
+        document.getElementById('edit_sdt').value = (sdt === 'None' ? '' : sdt);
+        document.getElementById('edit_email').value = (email === 'None' ? '' : email);
         document.getElementById('edit_chuc_vu').value = chucvu;
         document.getElementById('edit_luong').value = luong;
         document.getElementById('edit_tai_khoan').value = taikhoan;
         document.getElementById('edit_mat_khau').value = matkhau;
+        document.getElementById('edit_ngay_sinh').value = ngaysinh;
+        document.getElementById('edit_gioi_tinh').value = gioitinh;
+        
         if(phongban && phongban !== 'None') { document.getElementById('edit_phong_ban').value = phongban; }
     }
-    // Đã xóa script filterTable() client-side vì giờ dùng form server-side
 </script>
 {% endblock %}

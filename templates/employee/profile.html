@@ -13,6 +13,7 @@
 {% block content %}
 <div class="container-fluid">
     <div class="row">
+        <!-- CỘT TRÁI: FORM THÔNG TIN -->
         <div class="col-md-8 mb-4">
             <div class="card border-0 shadow-sm h-100">
                 <div class="card-header bg-white border-bottom-0 pt-4 px-4">
@@ -20,44 +21,109 @@
                 </div>
                 <div class="card-body p-4">
                     <form action="/employee/profile" method="POST">
+                        
+                        <!-- PHẦN 1: THÔNG TIN CỐ ĐỊNH (KHÔNG THỂ SỬA) -->
+                        <h6 class="text-muted text-uppercase fw-bold small mb-3 border-bottom pb-2">Thông tin nhân sự</h6>
+                        
                         <div class="row mb-3">
-                            <div class="col-md-6"><label class="form-label text-muted fw-bold small">Mã Nhân Viên</label><input type="text" class="form-control bg-light" value="{{ info.MaNV }}" disabled></div>
-                            <div class="col-md-6"><label class="form-label text-muted fw-bold small">Họ và Tên</label><input type="text" class="form-control bg-light" value="{{ info.HoTen }}" disabled></div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold small text-secondary">Mã Nhân Viên</label>
+                                <input type="text" class="form-control bg-light" value="{{ info.MaNV }}" disabled>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold small text-secondary">Họ và Tên</label>
+                                <input type="text" class="form-control bg-light fw-bold text-dark" value="{{ info.HoTen }}" disabled>
+                            </div>
                         </div>
+
                         <div class="row mb-3">
-                            <div class="col-md-6"><label class="form-label text-muted fw-bold small">Ngày Sinh</label><input type="text" class="form-control bg-light" value="{{ info.NamSinh }}" disabled></div>
-                            <div class="col-md-6"><label class="form-label text-muted fw-bold small">Chức Vụ</label><div class="input-group"><span class="input-group-text bg-light"><i class="fas fa-briefcase"></i></span><input type="text" class="form-control bg-light" value="{{ info.ChucVu }}" disabled></div></div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold small text-secondary">Ngày Sinh</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0"><i class="fas fa-birthday-cake text-muted"></i></span>
+                                    <input type="text" class="form-control bg-light border-start-0" value="{{ info.NamSinh }}" disabled>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold small text-secondary">Giới Tính</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0"><i class="fas fa-venus-mars text-muted"></i></span>
+                                    <input type="text" class="form-control bg-light border-start-0" value="{{ info.GioiTinh }}" disabled>
+                                </div>
+                            </div>
                         </div>
-                        <hr class="my-4 text-muted">
-                        <h6 class="text-success mb-3 fw-bold"><i class="fas fa-user-edit me-2"></i>Thông tin liên hệ (Có thể chỉnh sửa)</h6>
-                        <div class="mb-3"><label class="form-label fw-bold">Số Điện Thoại</label><input type="text" class="form-control border-success" name="sdt" value="{{ info.SoDienThoai }}"></div>
-                        <div class="mb-3"><label class="form-label fw-bold">Email</label><input type="email" class="form-control border-success" name="email" value="{{ info.Email }}"></div>
-                        <div class="mb-3"><label class="form-label fw-bold">Địa Chỉ</label><textarea class="form-control border-success" name="dia_chi" rows="2">{{ info.DiaChi }}</textarea></div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold small text-secondary">Chức Vụ</label>
+                                <input type="text" class="form-control bg-light" value="{{ info.ChucVu }}" disabled>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold small text-secondary">Lương Cơ Bản</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control bg-light border-end-0 fw-bold text-success" value="{{ info.LuongCoBan }}" disabled>
+                                    <span class="input-group-text bg-light border-start-0 text-success">VNĐ</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- PHẦN 2: THÔNG TIN LIÊN HỆ (ĐƯỢC PHÉP SỬA) -->
+                        <h6 class="text-success text-uppercase fw-bold small mb-3 mt-4 border-bottom pb-2">
+                            <i class="fas fa-edit me-1"></i> Thông tin liên hệ (Có thể cập nhật)
+                        </h6>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Số Điện Thoại</label>
+                            <input type="text" class="form-control border-success" name="sdt" value="{{ info.SoDienThoai }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Email</label>
+                            <input type="email" class="form-control border-success" name="email" value="{{ info.Email }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Địa Chỉ</label>
+                            <textarea class="form-control border-success" name="dia_chi" rows="2" required>{{ info.DiaChi }}</textarea>
+                        </div>
                         
                         <div class="d-flex justify-content-end mt-4">
                             <button type="reset" class="btn btn-light me-2 border">Khôi phục</button>
-                            <button type="submit" class="btn btn-primary px-4 fw-bold shadow-sm"><i class="fas fa-save me-2"></i>Lưu Thay Đổi</button>
+                            <button type="submit" class="btn btn-primary px-4 fw-bold shadow-sm">
+                                <i class="fas fa-save me-2"></i>Lưu Thay Đổi
+                            </button>
                         </div>
                     </form>
                 </div>
             </div>
         </div>
 
-        <!-- CỘT PHẢI: Ảnh Đại Diện -->
+        <!-- CỘT PHẢI: PROFILE CARD -->
         <div class="col-md-4 mb-4">
             <div class="card border-0 shadow-sm text-center p-4 h-100">
                 <div class="mb-4 mt-2 position-relative d-inline-block">
-                    <img src="https://ui-avatars.com/api/?name={{ info.HoTen }}&background=0D8ABC&color=fff&size=150" class="rounded-circle img-thumbnail shadow-sm" alt="Avatar" style="width: 150px; height: 150px; object-fit: cover;">
+                    <img src="https://ui-avatars.com/api/?name={{ info.HoTen }}&background=0D8ABC&color=fff&size=150&font-size=0.4" 
+                         class="rounded-circle img-thumbnail shadow-sm" alt="Avatar" 
+                         style="width: 150px; height: 150px; object-fit: cover;">
                 </div>
                 
                 <h4 class="mb-1 fw-bold">{{ info.HoTen }}</h4>
-                <p class="text-muted badge bg-light text-dark border px-3 py-2 mt-2">{{ info.ChucVu }}</p>
+                <div class="mt-2">
+                    <span class="badge bg-primary px-3 py-2">{{ info.ChucVu }}</span>
+                </div>
                 
-                <div class="card-body px-0 mt-3">
+                <div class="card-body px-0 mt-4">
                     <ul class="list-group list-group-flush text-start small">
-                        <li class="list-group-item d-flex justify-content-between align-items-center"><span><i class="fas fa-calendar-check me-2 text-info"></i>Ngày vào làm</span><span class="fw-bold">{{ info.NgayVaoLam }}</span></li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center"><span><i class="fas fa-building me-2 text-warning"></i>Phòng ban</span><span class="fw-bold text-dark">{{ info.TenPhongBan }}</span></li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center"><span><i class="fas fa-user-tag me-2 text-success"></i>Trạng thái</span><span class="badge bg-success">Đang hoạt động</span></li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center py-3">
+                            <span><i class="fas fa-calendar-check me-2 text-info"></i>Ngày vào làm</span>
+                            <span class="fw-bold">{{ info.NgayVaoLam }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center py-3">
+                            <span><i class="fas fa-building me-2 text-warning"></i>Phòng ban</span>
+                            <span class="fw-bold text-dark">{{ info.TenPhongBan }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center py-3">
+                            <span><i class="fas fa-user-tag me-2 text-success"></i>Trạng thái</span>
+                            <span class="badge bg-success bg-opacity-25 text-success border border-success">Đang hoạt động</span>
+                        </li>
                     </ul>
                 </div>
 
@@ -71,6 +137,7 @@
     </div>
 </div>
 
+<!-- Modal Đổi Mật Khẩu (Giữ nguyên) -->
 <div class="modal fade" id="modalChangePass" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -82,15 +149,15 @@
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label fw-bold">Mật khẩu hiện tại</label>
-                        <input type="password" name="mk_cu" class="form-control" required placeholder="Nhập mật khẩu cũ...">
+                        <input type="password" name="mk_cu" class="form-control" required>
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-bold text-primary">Mật khẩu mới</label>
-                        <input type="password" name="mk_moi" class="form-control" required placeholder="Nhập mật khẩu mới...">
+                        <input type="password" name="mk_moi" class="form-control" required>
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-bold text-primary">Xác nhận mật khẩu mới</label>
-                        <input type="password" name="xac_nhan_mk" class="form-control" required placeholder="Nhập lại mật khẩu mới...">
+                        <input type="password" name="xac_nhan_mk" class="form-control" required>
                     </div>
                 </div>
                 <div class="modal-footer">
